@@ -10,12 +10,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Component
-public class CommonJdbcUtils {
+public class CustomJdbcUtils {
 
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    public CommonJdbcUtils(JdbcTemplate jdbcTemplate) {
+    public CustomJdbcUtils(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
