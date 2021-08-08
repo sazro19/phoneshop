@@ -1,6 +1,6 @@
 package com.es.core.model.phone;
 
-import com.es.core.model.CommonJdbcUtils;
+import com.es.core.model.CustomJdbcUtils;
 import org.simpleflatmapper.jdbc.spring.JdbcTemplateMapperFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -25,10 +25,10 @@ public class JdbcPhoneDao implements PhoneDao {
 
     private JdbcTemplate jdbcTemplate;
 
-    private CommonJdbcUtils commonJdbcUtils;
+    private CustomJdbcUtils customJdbcUtils;
 
     private final ResultSetExtractor<List<Phone>> resultSetExtractor = JdbcTemplateMapperFactory
-            .newInstance().addKeys(PHONE_ID)
+            .newInstance().addKeys(PHONE_ID_FIELD)
             .newResultSetExtractor(Phone.class);
 
     private static final String SELECT_PHONE_BY_ID_QUERY = "SELECT phones.id AS id, brand, model, price, " +
@@ -60,7 +60,7 @@ public class JdbcPhoneDao implements PhoneDao {
             "JOIN colors ON colors.id = phone2color.colorId " +
             "ORDER BY phonesWithColor.id ";
 
-    private static final String UPDATE_PHONE_SQL_QUERY = "UPDATE phones SET brand=:brand, model=:model, price=:price, " +
+    private static final String UPDATE_PHONE_QUERY = "UPDATE phones SET brand=:brand, model=:model, price=:price, " +
             "displaySizeInches=:displaySizeInches, weightGr=:weightGr, lengthMm=:lengthMm, widthMm=:widthMm, " +
             "heightMm=:heightMm, announced=:announced, deviceType=:deviceType, os=:os, displayResolution=:displayResolution, " +
             "pixelDensity=:pixelDensity, displayTechnology=:displayTechnology, backCameraMegapixels=:backCameraMegapixels, " +
@@ -80,28 +80,29 @@ public class JdbcPhoneDao implements PhoneDao {
     @Autowired
     public void setDataSource(DataSource dataSource) {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
-        this.commonJdbcUtils = new CommonJdbcUtils(jdbcTemplate);
+        this.customJdbcUtils = new CustomJdbcUtils(jdbcTemplate);
     }
 
         @Transactional(readOnly = true)
     public Optional<Phone> get(final Long key) {
         List<Phone> result = jdbcTemplate.query(SELECT_PHONE_BY_ID_QUERY, resultSetExtractor, key);
 
-        if (result.isEmpty()) {
-            return Optional.empty();
+        if (result != null) {
+            if (!result.isEmpty()) {
+                return Optional.of(result.get(0));
+            }
         }
-
-        return Optional.of(result.get(0));
+        return Optional.empty();
     }
 
     @Transactional(rollbackFor = DataAccessException.class)
     public void save(final Phone phone) {
-        boolean isEntityExist = commonJdbcUtils.isEntityExist(PHONES_TABLE_NAME,
-                Map.of(BRAND_UNIQUE, phone.getBrand(), MODEL_UNIQUE, phone.getModel()));
+        boolean isEntityExist = customJdbcUtils.isEntityExist(PHONES_TABLE_NAME,
+                Map.of(BRAND_UNIQUE_FIELD, phone.getBrand(), MODEL_UNIQUE_FIELD, phone.getModel()));
         if (isEntityExist) {
             update(phone);
         } else {
-            insert(phone);
+            insertNewPhone(phone);
         }
     }
 
@@ -114,13 +115,13 @@ public class JdbcPhoneDao implements PhoneDao {
 
     private void update(final Phone phone) {
         NamedParameterJdbcTemplate parameterJdbcTemplate = new NamedParameterJdbcTemplate(jdbcTemplate);
-        parameterJdbcTemplate.update(UPDATE_PHONE_SQL_QUERY, new BeanPropertySqlParameterSource(phone));
+        parameterJdbcTemplate.update(UPDATE_PHONE_QUERY, new BeanPropertySqlParameterSource(phone));
         refreshColors(phone);
     }
 
-    private void insert(Phone phone) {
-        Long newId = commonJdbcUtils.insertAndReturnGeneratedKey(PHONES_TABLE_NAME, new BeanPropertySqlParameterSource(phone),
-                PHONE_ID).longValue();
+    private void insertNewPhone(Phone phone) {
+        Long newId = customJdbcUtils.insertAndReturnGeneratedKey(PHONES_TABLE_NAME, new BeanPropertySqlParameterSource(phone),
+                PHONE_ID_FIELD).longValue();
         phone.setId(newId);
         saveColors(phone);
     }

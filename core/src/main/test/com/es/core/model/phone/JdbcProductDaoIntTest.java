@@ -20,9 +20,9 @@ import javax.sql.DataSource;
 import java.util.*;
 
 
-@ContextConfiguration(classes = JdbcPhoneDaoTestConfig.class)
+@ContextConfiguration(classes = JdbcProductDaoIntTestConfig.class)
 @ExtendWith(SpringExtension.class)
-public class JdbcPhoneDaoTest {
+public class JdbcProductDaoIntTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;

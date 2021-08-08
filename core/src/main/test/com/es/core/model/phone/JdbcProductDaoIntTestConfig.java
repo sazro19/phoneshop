@@ -20,7 +20,7 @@ import javax.sql.DataSource;
 @Configuration
 @ComponentScan("com.es.core.model.phone")
 @PropertySource("classpath:/test-config/test.properties")
-public class JdbcPhoneDaoTestConfig {
+public class JdbcProductDaoIntTestConfig {
 
     @Autowired
     private Environment environment;
