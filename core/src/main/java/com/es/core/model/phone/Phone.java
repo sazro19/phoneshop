@@ -3,6 +3,7 @@ package com.es.core.model.phone;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
 
 public class Phone {
@@ -271,5 +272,18 @@ public class Phone {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Phone phone = (Phone) o;
+        return id.equals(phone.id) && Objects.equals(brand, phone.brand) && Objects.equals(model, phone.model) && Objects.equals(price, phone.price) && Objects.equals(displaySizeInches, phone.displaySizeInches) && Objects.equals(weightGr, phone.weightGr) && Objects.equals(lengthMm, phone.lengthMm) && Objects.equals(widthMm, phone.widthMm) && Objects.equals(heightMm, phone.heightMm) && Objects.equals(announced, phone.announced) && Objects.equals(deviceType, phone.deviceType) && Objects.equals(os, phone.os) && Objects.equals(displayResolution, phone.displayResolution) && Objects.equals(pixelDensity, phone.pixelDensity) && Objects.equals(displayTechnology, phone.displayTechnology) && Objects.equals(backCameraMegapixels, phone.backCameraMegapixels) && Objects.equals(frontCameraMegapixels, phone.frontCameraMegapixels) && Objects.equals(ramGb, phone.ramGb) && Objects.equals(internalStorageGb, phone.internalStorageGb) && Objects.equals(batteryCapacityMah, phone.batteryCapacityMah) && Objects.equals(talkTimeHours, phone.talkTimeHours) && Objects.equals(standByTimeHours, phone.standByTimeHours) && Objects.equals(bluetooth, phone.bluetooth) && Objects.equals(positioning, phone.positioning) && Objects.equals(imageUrl, phone.imageUrl) && Objects.equals(description, phone.description);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, brand, model, price, displaySizeInches, weightGr, lengthMm, widthMm, heightMm, announced, deviceType, os, displayResolution, pixelDensity, displayTechnology, backCameraMegapixels, frontCameraMegapixels, ramGb, internalStorageGb, batteryCapacityMah, talkTimeHours, standByTimeHours, bluetooth, positioning, imageUrl, description);
     }
 }
