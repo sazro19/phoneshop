@@ -63,7 +63,7 @@
     <ul class="pagination justify-content-center">
         <li class="page-item ${currentPage eq 1 ? 'disabled' : ''}">
             <a class="page-link"
-               href="?sort=${param.sort}&order=${param.order}&query=${param.query}&page=${currentPage-1}"
+               href="?sort=${param.sort}&order=${param.order}&query=${param.query}&searchCriteria=${param.searchCriteria}&page=${currentPage-1}"
                aria-label="Previous">
                 <span aria-hidden="true">&laquo;</span>
                 <span class="sr-only">Previous</span>
@@ -74,7 +74,7 @@
 
             <li class="page-item ${pageNum eq currentPage ? 'active' : ''}">
                 <a class="page-link"
-                   href="?sort=${param.sort}&order=${param.order}&query=${param.query}&page=${pageNum}">
+                   href="?sort=${param.sort}&order=${param.order}&query=${param.query}&searchCriteria=${param.searchCriteria}&page=${pageNum}">
                         ${pageNum}
                 </a>
             </li>
@@ -82,7 +82,7 @@
 
         <li class="page-item ${currentPage eq numberOfPages ? 'disabled' : ''}">
             <a class="page-link"
-               href="?sort=${param.sort}&order=${param.order}&query=${param.query}&page=${currentPage+1}"
+               href="?sort=${param.sort}&order=${param.order}&query=${param.query}&searchCriteria=${param.searchCriteria}&page=${currentPage+1}"
                aria-label="Next">
                 <span aria-hidden="true">&raquo;</span>
                 <span class="sr-only">Next</span>
