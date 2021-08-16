@@ -1,6 +1,8 @@
 package com.es.core.model.phone;
 
 import com.es.core.model.searchCriteria.SearchCriteria;
+import com.es.core.model.sort.SortCriteria;
+import com.es.core.model.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -72,13 +75,13 @@ public class JdbcPhoneDao implements PhoneDao {
             "LEFT JOIN phone2color ON phones.id = phone2color.phoneId " +
             "WHERE phone2color.phoneId IS NULL) AND phones.price IS NOT NULL " +
             "AND LOWER(phones.model) LIKE '%s' " +
+            "ORDER BY phones.%s %s " +
             "LIMIT ?, ?) " +
             "AS phonesWithColor " +
             "JOIN phone2color ON phonesWithColor.id = phone2color.phoneId " +
             "JOIN colors ON colors.id = phone2color.colorId " +
             "JOIN stocks ON phonesWithColor.id = stocks.phoneId " +
-            "WHERE stocks.stock > 0 " +
-            "ORDER BY phonesWithColor.id ";
+            "WHERE stocks.stock > 0 ";
 
     private static final String SELECT_ALL_WITH_DESCRIPTION_SEARCH_QUERY = "SELECT phonesWithColor.id AS id, brand, " +
             "model, price, displaySizeInches, weightGr, lengthMm, widthMm, heightMm, " +
@@ -93,13 +96,13 @@ public class JdbcPhoneDao implements PhoneDao {
             "LEFT JOIN phone2color ON phones.id = phone2color.phoneId " +
             "WHERE phone2color.phoneId IS NULL) AND phones.price IS NOT NULL " +
             "AND LOWER(phones.description) LIKE '%s' " +
+            "ORDER BY phones.%s %s " +
             "LIMIT ?, ?) " +
             "AS phonesWithColor " +
             "JOIN phone2color ON phonesWithColor.id = phone2color.phoneId " +
             "JOIN colors ON colors.id = phone2color.colorId " +
             "JOIN stocks ON phonesWithColor.id = stocks.phoneId " +
-            "WHERE stocks.stock > 0 " +
-            "ORDER BY phonesWithColor.id ";
+            "WHERE stocks.stock > 0 ";
 
     private static final String UPDATE_PHONE_QUERY = "UPDATE phones SET brand=:brand, model=:model, price=:price, " +
             "displaySizeInches=:displaySizeInches, weightGr=:weightGr, lengthMm=:lengthMm, widthMm=:widthMm, " +
@@ -148,12 +151,15 @@ public class JdbcPhoneDao implements PhoneDao {
         return result;
     }
 
-    public List<Phone> findAll(String query, SearchCriteria criteria, int offset, int limit) {
+    public List<Phone> findAll(String query, SearchCriteria searchCriteria, SortCriteria sortCriteria,
+                               SortOrder sortOrder, int offset, int limit) {
         String resultQuery;
-        if (criteria.equals(SearchCriteria.MODEL)) {
-            resultQuery = String.format(SELECT_ALL_WITH_MODEL_SEARCH_QUERY, getSearchPattern(query));
+        if (searchCriteria.equals(SearchCriteria.MODEL)) {
+            resultQuery = String.format(SELECT_ALL_WITH_MODEL_SEARCH_QUERY, getSearchPattern(query),
+                    sortCriteria.getValue(), sortOrder);
         } else {
-            resultQuery = String.format(SELECT_ALL_WITH_DESCRIPTION_SEARCH_QUERY, getSearchPattern(query));
+            resultQuery = String.format(SELECT_ALL_WITH_DESCRIPTION_SEARCH_QUERY, getSearchPattern(query),
+                    sortCriteria.getValue(), sortOrder);
         }
         List<Phone> result = jdbcTemplate.query(resultQuery, resultSetExtractor, offset, limit);
 
