@@ -1,6 +1,8 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <tags:master pageTitle="Product list">
   <form>
@@ -21,7 +23,6 @@
       Search
     </button>
   </form>
-  <form method="post">
     <table class="table">
       <thead>
         <tr>
@@ -51,8 +52,8 @@
           <td>Action</td>
         </tr>
       </thead>
-      <c:forEach var="phone" items="${phones}">
-        <tr>
+      <c:forEach var="phone" items="${phones}" varStatus="statusCartItems">
+        <tr class="row-${statusCartItems.index % 2 == 0 ? "even" : ""}">
           <td>
             <img src="https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/${phone.imageUrl}">
           </td>
@@ -65,11 +66,20 @@
           </td>
           <td>${phone.displaySizeInches}"</td>
           <td>${phone.price}$</td>
-          <td><input id="${phone.id}" value="1"></td>
-          <td><button>Add to</button></td>
+          <td> <input id="quantity-${phone.id}"
+                      class="quantityInput quantity"
+                      type="text"
+                      name="quantity"
+                      value="1"/>
+            <div id="quantityInputMessage-${phone.id}">
+            </div>
+          </td>
+          <td><button id="btn-addPhoneToCart-${phone.id}" onclick="addPhoneToCart(${phone.id})"
+                      class="btn btn-light">
+            Add
+          </button></td>
         </tr>
       </c:forEach>
     </table>
-  </form>
   <tags:pagination numberOfPages="${numberOfPages}"/>
 </tags:master>
