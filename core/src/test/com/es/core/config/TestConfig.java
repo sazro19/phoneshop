@@ -1,5 +1,8 @@
-package com.es.core.model.phone;
+package com.es.core.config;
 
+import com.es.core.cart.CartService;
+import com.es.core.cart.HttpSessionCartService;
+import com.es.core.model.phone.JdbcPhoneDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +23,7 @@ import javax.sql.DataSource;
 @Configuration
 @ComponentScan("com.es.core.model.phone")
 @PropertySource("classpath:/test-config/test.properties")
-public class JdbcProductDaoIntTestConfig {
+public class TestConfig {
 
     @Autowired
     private Environment environment;
@@ -47,9 +50,14 @@ public class JdbcProductDaoIntTestConfig {
     }
 
     @Bean
-    public JdbcPhoneDao jdbcPhoneDao(@Qualifier("test") DataSource testDataSource) {
-        JdbcPhoneDao jdbcPhoneDao = new JdbcPhoneDao();
-        jdbcPhoneDao.setDataSource(testDataSource);
-        return jdbcPhoneDao;
+    public JdbcPhoneDao jdbcPhoneDao() {
+        return new JdbcPhoneDao();
+    }
+
+    @Bean
+    public CartService getCartService(JdbcPhoneDao phoneDao) {
+        HttpSessionCartService cartService = new HttpSessionCartService();
+        cartService.setPhoneDao(phoneDao);
+        return cartService;
     }
 }

@@ -33,17 +33,11 @@ public class ProductListPageController {
 
         model.addAttribute("numberOfPages", numberOfPages);
 
-        if (searchCriteria == null || searchCriteria.isEmpty()) {
-            searchCriteria = "MODEL";
-        }
-        if (sortCriteria == null || sortCriteria.isEmpty()) {
-            sortCriteria = "BRAND";
-        }
-        if (sortOrder == null || sortOrder.isEmpty()) {
-            sortOrder = "ASC";
-        }
-        model.addAttribute("phones", phoneDao.findAll(query, SearchCriteria.valueOf(searchCriteria.toUpperCase()),
-                SortCriteria.valueOf(sortCriteria.toUpperCase()), SortOrder.valueOf(sortOrder.toUpperCase()), offset, DEFAULT_RECORDS_LIMIT));
+        SearchCriteria search = isParamEmpty(searchCriteria) ? SearchCriteria.MODEL : SearchCriteria.valueOf(searchCriteria.toUpperCase());
+        SortCriteria sort = isParamEmpty(sortCriteria) ? SortCriteria.BRAND : SortCriteria.valueOf(sortCriteria.toUpperCase());
+        SortOrder order = isParamEmpty(sortOrder) ? SortOrder.ASC : SortOrder.valueOf(sortOrder.toUpperCase());
+
+        model.addAttribute("phones", phoneDao.findAll(query, search, sort, order, offset, DEFAULT_RECORDS_LIMIT));
         return "productList";
     }
 
@@ -62,5 +56,9 @@ public class ProductListPageController {
             return totalRecordsQuantity / recordsLimit;
         } else
             return totalRecordsQuantity / recordsLimit + 1;
+    }
+
+    private boolean isParamEmpty(String param) {
+        return param == null || param.isEmpty();
     }
 }

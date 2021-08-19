@@ -165,7 +165,6 @@ public class JdbcPhoneDao implements PhoneDao {
         return result;
     }
 
-    @Override
     public int getRecordsQuantity() {
         return jdbcTemplate.queryForObject(COUNT_ALL_VALID_PHONES_SQL_QUERY, Integer.class);
     }
@@ -210,9 +209,5 @@ public class JdbcPhoneDao implements PhoneDao {
                             .addValue("phoneId", phone.getId())
                             .addValue("colorId", color.getId()));
         }
-    }
-
-    public void setDataSource(DataSource dataSource) {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 }

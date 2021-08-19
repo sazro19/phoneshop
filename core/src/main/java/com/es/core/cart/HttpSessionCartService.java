@@ -99,4 +99,8 @@ public class HttpSessionCartService implements CartService {
             return BigDecimal.ZERO;
         }
     }
+
+    public void setPhoneDao(PhoneDao phoneDao) {
+        this.phoneDao = phoneDao;
+    }
 }
