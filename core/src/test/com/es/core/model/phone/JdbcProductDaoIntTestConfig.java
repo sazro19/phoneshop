@@ -47,9 +47,7 @@ public class JdbcProductDaoIntTestConfig {
     }
 
     @Bean
-    public JdbcPhoneDao jdbcPhoneDao(@Qualifier("test") DataSource testDataSource) {
-        JdbcPhoneDao jdbcPhoneDao = new JdbcPhoneDao();
-        jdbcPhoneDao.setDataSource(testDataSource);
-        return jdbcPhoneDao;
+    public JdbcPhoneDao jdbcPhoneDao() {
+        return new JdbcPhoneDao();
     }
 }

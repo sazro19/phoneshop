@@ -122,8 +122,4 @@ public class JdbcPhoneDao implements PhoneDao {
                             .addValue("colorId", color.getId()));
         }
     }
-
-    public void setDataSource(DataSource dataSource) {
-        this.jdbcTemplate = new JdbcTemplate(dataSource);
-    }
 }
