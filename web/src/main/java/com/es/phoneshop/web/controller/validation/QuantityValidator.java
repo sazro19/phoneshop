@@ -6,7 +6,10 @@ import org.springframework.validation.Validator;
 
 @Service
 public class QuantityValidator implements Validator {
-    private static final String ERROR_MESSAGE = "Not a number";
+    private static final String QUANTITY_VAR = "quantity";
+
+    private static final String NOT_A_NUMBER_MESSAGE = "Not a number";
+    private static final String INVALID_QUANTITY_MESSAGE = "Invalid quantity";
 
     @Override
     public boolean supports(Class<?> aClass) {
@@ -20,7 +23,11 @@ public class QuantityValidator implements Validator {
         try {
             quantity = Long.parseLong(quantityInputWrapper.getQuantity());
         } catch (NumberFormatException e) {
-            errors.rejectValue("quantity", ERROR_MESSAGE);
+            errors.reject(QUANTITY_VAR, NOT_A_NUMBER_MESSAGE);
+        }
+
+        if (quantity <= 0) {
+            errors.reject(QUANTITY_VAR, INVALID_QUANTITY_MESSAGE);
         }
     }
 }

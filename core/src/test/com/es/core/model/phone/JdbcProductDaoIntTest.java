@@ -1,7 +1,6 @@
 package com.es.core.model.phone;
 
 import com.es.core.config.TestConfig;
-import com.es.core.model.searchCriteria.SearchCriteria;
 import com.es.core.model.sort.SortCriteria;
 import com.es.core.model.sort.SortOrder;
 import org.junit.Before;
@@ -87,13 +86,12 @@ public class JdbcProductDaoIntTest {
     @Test
     public void findAllWithQueryTest() {
         String query = "ARCHOS";
-        SearchCriteria searchCriteria = SearchCriteria.MODEL;
         SortCriteria sortCriteria = SortCriteria.PRICE;
         SortOrder sortOrder = SortOrder.ASC;
         int offset = 0;
         int limit = idPhoneMap.size();
 
-        List<Phone> actual = jdbcPhoneDao.findAll(query, searchCriteria, sortCriteria, sortOrder, offset, limit);
+        List<Phone> actual = jdbcPhoneDao.findAll(new ParamWrapper(query, sortCriteria, sortOrder, offset, limit));
 
         assertEquals(BigDecimal.valueOf(123.), actual.get(0).getPrice());
         assertEquals(BigDecimal.valueOf(228.), actual.get(1).getPrice());
@@ -138,6 +136,6 @@ public class JdbcProductDaoIntTest {
 
     @Test
     public void getRecordsQuantityTest() {
-        assertEquals(3, jdbcPhoneDao.getRecordsQuantity());
+        assertEquals(3, jdbcPhoneDao.getRecordsQuantity("ARCHOS", SortCriteria.BRAND, SortOrder.ASC));
     }
 }

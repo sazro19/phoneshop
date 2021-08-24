@@ -5,10 +5,10 @@ import com.es.core.cart.CartService;
 import com.es.phoneshop.web.controller.dto.AddPhoneResponseDTO;
 import com.es.phoneshop.web.controller.dto.MiniCartDTO;
 import com.es.phoneshop.web.controller.validation.QuantityInputWrapper;
-import com.es.phoneshop.web.controller.validation.QuantityValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
@@ -54,8 +54,12 @@ public class AjaxCartController {
             return createAddPhoneResponseDTO(false, cart, bindingResult);
         }
 
-        cartService.addPhone(cart, phoneId, Long.valueOf(quantityInputWrapper.getQuantity()));
-
+        try {
+            cartService.addPhone(cart, phoneId, Long.valueOf(quantityInputWrapper.getQuantity()));
+        } catch (IllegalArgumentException e) {
+            bindingResult.addError(new ObjectError("quantity", e.getMessage()));
+            return createAddPhoneResponseDTO(false, cart, bindingResult);
+        }
         return createAddPhoneResponseDTO(true, cart, bindingResult);
     }
 

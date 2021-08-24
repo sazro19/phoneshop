@@ -15,6 +15,8 @@ import java.util.Optional;
 public class HttpSessionCartService implements CartService {
     private static final String CART_SESSION_ATTRIBUTE = HttpSessionCartService.class.getName() + ".cart";
 
+    private static final String INVALID_QUANTITY_MESSAGE = "Invalid quantity";
+
     @Autowired
     private PhoneDao phoneDao;
 
@@ -32,6 +34,9 @@ public class HttpSessionCartService implements CartService {
 
     @Override
     public void addPhone(Cart cart, Long phoneId, Long quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException(INVALID_QUANTITY_MESSAGE);
+        }
         try {
             Phone phone = phoneDao.get(phoneId).get();
             Optional<CartItem> cartItemOptional = getExistingItem(cart, phone);

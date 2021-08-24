@@ -5,7 +5,7 @@ import com.es.core.model.phone.Phone;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class CartItem implements Serializable, Cloneable {
+public class CartItem implements Serializable {
     private Phone phone;
 
     private long quantity;
@@ -13,6 +13,10 @@ public class CartItem implements Serializable, Cloneable {
     public CartItem(Phone phone, long quantity) {
         this.phone = phone;
         this.quantity = quantity;
+    }
+
+    public CartItem(CartItem other) {
+        this(other.getPhone(), other.getQuantity());
     }
 
     public Phone getPhone() {
@@ -47,10 +51,5 @@ public class CartItem implements Serializable, Cloneable {
     @Override
     public int hashCode() {
         return Objects.hash(phone);
-    }
-
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        return super.clone();
     }
 }

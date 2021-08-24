@@ -7,7 +7,7 @@ import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 
-public class Cart implements Serializable, Cloneable {
+public class Cart implements Serializable {
     private List<CartItem> itemList;
 
     private long totalQuantity;

@@ -7,18 +7,6 @@
 <tags:master pageTitle="Product list">
   <form>
     <input name="query" value="${param.query}"/>
-    <select name="searchCriteria">
-      <c:choose>
-        <c:when test="${param.searchCriteria eq 'Description'}">
-          <option>Model</option>
-          <option selected>Description</option>
-        </c:when>
-        <c:otherwise>
-          <option selected>Model</option>
-          <option>Description</option>
-        </c:otherwise>
-      </c:choose>
-    </select>
     <button>
       Search
     </button>

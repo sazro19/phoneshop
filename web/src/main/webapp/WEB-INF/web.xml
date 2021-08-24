@@ -5,11 +5,6 @@
          version="3.1">
   <display-name>Phone shop storefront</display-name>
 
-  <context-param>
-    <param-name>spring.profiles.active</param-name>
-    <param-value>test</param-value>
-  </context-param>
-
   <listener>
     <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
   </listener>
