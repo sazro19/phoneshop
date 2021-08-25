@@ -1,8 +1,9 @@
 package com.es.core.model.phone;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Color {
+public class Color implements Serializable {
     private Long id;
     private String code;
 
@@ -20,6 +21,11 @@ public class Color {
 
     public void setCode(final String code) {
         this.code = code;
+    }
+
+    @Override
+    public String toString() {
+        return code;
     }
 
     @Override

@@ -1,5 +1,8 @@
 package com.es.core.model.phone;
 
+import com.es.core.config.TestConfig;
+import com.es.core.model.sort.SortCriteria;
+import com.es.core.model.sort.SortOrder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,12 +19,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.jdbc.JdbcTestUtils;
 
 import javax.sql.DataSource;
+import java.math.BigDecimal;
 import java.util.*;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = JdbcProductDaoIntTestConfig.class)
+@ContextConfiguration(classes = TestConfig.class)
 public class JdbcProductDaoIntTest {
 
     @Autowired
@@ -37,7 +42,7 @@ public class JdbcProductDaoIntTest {
             "JOIN colors ON phone2color.colorId = colors.id " +
             "WHERE phoneId = ?";
 
-    private final List<Long> idList = Arrays.asList(1000L, 1001L, 1002L, 1003L, 1004L);
+    private final List<Long> idList = Arrays.asList(1000L, 1001L, 1002L, 1003L, 1004L, 1005L, 1006L);
     private Map<Long, Phone> idPhoneMap;
 
     @Before
@@ -72,11 +77,25 @@ public class JdbcProductDaoIntTest {
 
     @Test
     public void findAllTest() {
-        List<Phone> expected = new ArrayList<>(idPhoneMap.values());
-
         List<Phone> actual = jdbcPhoneDao.findAll(0, idPhoneMap.size());
 
-        assertEquals(expected, actual);
+        assertEquals(3, actual.size());
+        actual.forEach(phone -> assertNotNull(phone.getPrice()));
+    }
+
+    @Test
+    public void findAllWithQueryTest() {
+        String query = "ARCHOS";
+        SortCriteria sortCriteria = SortCriteria.PRICE;
+        SortOrder sortOrder = SortOrder.ASC;
+        int offset = 0;
+        int limit = idPhoneMap.size();
+
+        List<Phone> actual = jdbcPhoneDao.findAll(new ParamWrapper(query, sortCriteria, sortOrder, offset, limit));
+
+        assertEquals(BigDecimal.valueOf(123.), actual.get(0).getPrice());
+        assertEquals(BigDecimal.valueOf(228.), actual.get(1).getPrice());
+        assertEquals(BigDecimal.valueOf(322.), actual.get(2).getPrice());
     }
 
     @Test
@@ -113,5 +132,10 @@ public class JdbcProductDaoIntTest {
         int quantityAfterAdding = JdbcTestUtils.countRowsInTable(jdbcTemplate, "phones");
 
         assertEquals(quantityBeforeSaving, quantityAfterAdding - 1);
+    }
+
+    @Test
+    public void getRecordsQuantityTest() {
+        assertEquals(3, jdbcPhoneDao.getRecordsQuantity("ARCHOS", SortCriteria.BRAND, SortOrder.ASC));
     }
 }

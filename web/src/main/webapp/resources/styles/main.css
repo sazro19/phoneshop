@@ -1,0 +1,70 @@
+.quantityInput {
+    max-width: 80px;
+    text-align: right;
+}
+
+.price, .quantity {
+    /*text-align: right;*/
+}
+
+table {
+    border-collapse: collapse;
+    border: 1px solid gray;
+}
+
+th {
+    padding: 10px;
+    /*border: 1px solid gray;*/
+    vertical-align: top;
+}
+
+td {
+    padding: 10px;
+    /*border: 1px solid gray;*/
+    vertical-align: top;
+}
+
+img.product-tile {
+    max-width: 64px;
+}
+
+.row-even {
+    background-color: #f8f9fa;
+}
+
+a:link {
+    color: #2d2d2d;
+}
+
+td > a:visited {
+    color: #515b63;
+}
+
+td > a:hover {
+    color: #7b7b7b;
+}
+
+.table-label {
+    text-align: center;
+}
+
+.ref-btn {
+    background-color: #343a40
+}
+
+.ref-btn:visited {
+}
+
+.order-btn {
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+
+.success {
+    color: #28a745;
+}
+
+.error {
+    color: #dc3545;
+}
