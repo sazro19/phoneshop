@@ -19,11 +19,12 @@ public class QuantityValidator implements Validator {
     @Override
     public void validate(Object o, Errors errors) {
         QuantityInputWrapper quantityInputWrapper = ((QuantityInputWrapper) o);
-        long quantity = 0L;
+        long quantity;
         try {
             quantity = Long.parseLong(quantityInputWrapper.getQuantity());
         } catch (NumberFormatException e) {
             errors.reject(QUANTITY_VAR, NOT_A_NUMBER_MESSAGE);
+            return;
         }
 
         if (quantity <= 0) {
