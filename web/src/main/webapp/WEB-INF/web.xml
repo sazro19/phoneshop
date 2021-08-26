@@ -32,4 +32,14 @@
     <location>/WEB-INF/pages/errors/unknownError.jsp</location>
     <error-code>500</error-code>
   </error-page>
+
+  <filter>
+    <filter-name>HiddenHttpMethodFilter</filter-name>
+    <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+  </filter>
+
+  <filter-mapping>
+    <filter-name>HiddenHttpMethodFilter</filter-name>
+    <servlet-name>dispatcher</servlet-name>
+  </filter-mapping>
 </web-app>

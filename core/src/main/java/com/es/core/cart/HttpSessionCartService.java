@@ -8,9 +8,11 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class HttpSessionCartService implements CartService {
@@ -19,6 +21,8 @@ public class HttpSessionCartService implements CartService {
     private static final String INVALID_QUANTITY_MESSAGE = "Invalid quantity";
 
     private static final String NOT_ENOUGH_STOCK_MESSAGE = "Not enough stock";
+
+    private static final String NOTHING_TO_UPDATE_MESSAGE = "Nothing to update";
 
     @Autowired
     private PhoneDao phoneDao;
@@ -50,7 +54,7 @@ public class HttpSessionCartService implements CartService {
 
         Optional<CartItem> cartItemOptional = getExistingItem(cart, phone);
         if (cartItemOptional.isPresent()) {
-            if (!isEnoughStock(cartItemOptional.get().getQuantity(), quantity, phone.getStock())) {
+            if (isNotEnoughStock(cartItemOptional.get().getQuantity(), quantity, phone.getStock())) {
                 String message = NOT_ENOUGH_STOCK_MESSAGE + ". " +
                         (phone.getStock() - cartItemOptional.get().getQuantity()) + " available";
                 throw new NotEnoughStockException(message);
@@ -59,9 +63,9 @@ public class HttpSessionCartService implements CartService {
             CartItem cartItem = cartItemOptional.get();
             cartItem.setQuantity(cartItem.getQuantity() + quantity);
         } else {
-            if (!isEnoughStock(0L, quantity, phone.getStock())) {
+            if (isNotEnoughStock(0L, quantity, phone.getStock())) {
                 String message = NOT_ENOUGH_STOCK_MESSAGE + ". " + phone.getStock() + " available";
-                throw new NotEnoughStockException(message);
+                throw new NotEnoughStockException(phoneId, message);
             }
 
             cart.getItemList().add(new CartItem(phone, quantity));
@@ -71,13 +75,36 @@ public class HttpSessionCartService implements CartService {
     }
 
     @Override
-    public void update(Map<Long, Long> items) {
-        throw new UnsupportedOperationException("TODO");
+    public void update(Cart cart, Map<Long, Long> items) {
+        List<CartItem> cartItemListToUpdate = cart.getItemList().stream()
+                .filter(cartItem -> items.containsKey(cartItem.getPhone().getId()))
+                .collect(Collectors.toList());
+
+        if (cartItemListToUpdate.isEmpty()) {
+            throw new IllegalArgumentException(NOTHING_TO_UPDATE_MESSAGE);
+        }
+
+        cartItemListToUpdate.forEach(cartItem -> {
+            long quantity = items.get(cartItem.getPhone().getId());
+
+            if (isNotEnoughStock(0L, quantity, cartItem.getPhone().getStock())) {
+                recalculateCart(cart);
+                String message = NOT_ENOUGH_STOCK_MESSAGE + ". " + cartItem.getPhone().getStock() + " available";
+                throw new NotEnoughStockException(cartItem.getPhone().getId(), message);
+            }
+
+            cartItem.setQuantity(quantity);
+        });
+        recalculateCart(cart);
     }
 
     @Override
-    public void remove(Long phoneId) {
-        throw new UnsupportedOperationException("TODO");
+    public void remove(Cart cart, Long phoneId) {
+        Optional<Phone> phoneOptional = phoneDao.get(phoneId);
+        phoneOptional.ifPresent(phone ->
+                cart.getItemList().removeIf(cartItem ->
+                        phone.equals(cartItem.getPhone())));
+        recalculateCart(cart);
     }
 
     private Optional<CartItem> getExistingItem(Cart cart, Phone phone) {
@@ -122,8 +149,8 @@ public class HttpSessionCartService implements CartService {
         }
     }
 
-    private boolean isEnoughStock(long cartItemQuantity, long quantityToAdd, Integer stock) {
-        return cartItemQuantity + quantityToAdd <= stock;
+    private boolean isNotEnoughStock(long cartItemQuantity, long quantityToAdd, Integer stock) {
+        return cartItemQuantity + quantityToAdd > stock;
     }
 
     public void setPhoneDao(PhoneDao phoneDao) {
