@@ -2,6 +2,7 @@ package com.es.phoneshop.web.controller;
 
 import com.es.core.cart.Cart;
 import com.es.core.cart.CartService;
+import com.es.core.exceptions.NotEnoughStockException;
 import com.es.phoneshop.web.controller.dto.AddPhoneResponseDTO;
 import com.es.phoneshop.web.controller.dto.MiniCartDTO;
 import com.es.phoneshop.web.controller.validation.QuantityInputWrapper;
@@ -56,7 +57,7 @@ public class AjaxCartController {
 
         try {
             cartService.addPhone(cart, phoneId, Long.valueOf(quantityInputWrapper.getQuantity()));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | NotEnoughStockException e) {
             bindingResult.addError(new ObjectError("quantity", e.getMessage()));
             return createAddPhoneResponseDTO(false, cart, bindingResult);
         }

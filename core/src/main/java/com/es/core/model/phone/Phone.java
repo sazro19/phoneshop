@@ -55,6 +55,8 @@ public class Phone implements Serializable {
 
     private String positioning;
 
+    private Integer stock;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -288,4 +290,11 @@ public class Phone implements Serializable {
         this.id = id;
     }
 
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
 }

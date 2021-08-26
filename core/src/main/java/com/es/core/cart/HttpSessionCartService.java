@@ -1,5 +1,6 @@
 package com.es.core.cart;
 
+import com.es.core.exceptions.NotEnoughStockException;
 import com.es.core.model.phone.Phone;
 import com.es.core.model.phone.PhoneDao;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,8 @@ public class HttpSessionCartService implements CartService {
     private static final String CART_SESSION_ATTRIBUTE = HttpSessionCartService.class.getName() + ".cart";
 
     private static final String INVALID_QUANTITY_MESSAGE = "Invalid quantity";
+
+    private static final String NOT_ENOUGH_STOCK_MESSAGE = "Not enough stock";
 
     @Autowired
     private PhoneDao phoneDao;
@@ -37,19 +40,33 @@ public class HttpSessionCartService implements CartService {
         if (quantity <= 0) {
             throw new IllegalArgumentException(INVALID_QUANTITY_MESSAGE);
         }
+
+        Phone phone;
         try {
-            Phone phone = phoneDao.get(phoneId).get();
-            Optional<CartItem> cartItemOptional = getExistingItem(cart, phone);
-            if (cartItemOptional.isPresent()) {
-                CartItem cartItem = cartItemOptional.get();
-                cartItem.setQuantity(cartItem.getQuantity() + quantity);
-            } else {
-                cart.getItemList().add(new CartItem(phone, quantity));
-            }
-            recalculateCart(cart);
+            phone = phoneDao.get(phoneId).get();
         } catch (NoSuchElementException e) {
             throw new NoSuchElementException(String.valueOf(phoneId));
         }
+
+        Optional<CartItem> cartItemOptional = getExistingItem(cart, phone);
+        if (cartItemOptional.isPresent()) {
+            if (!isEnoughStock(cartItemOptional.get().getQuantity(), quantity, phone.getStock())) {
+                String message = NOT_ENOUGH_STOCK_MESSAGE + ". " +
+                        (phone.getStock() - cartItemOptional.get().getQuantity()) + " available";
+                throw new NotEnoughStockException(message);
+            }
+
+            CartItem cartItem = cartItemOptional.get();
+            cartItem.setQuantity(cartItem.getQuantity() + quantity);
+        } else {
+            if (!isEnoughStock(0L, quantity, phone.getStock())) {
+                String message = NOT_ENOUGH_STOCK_MESSAGE + ". " + phone.getStock() + " available";
+                throw new NotEnoughStockException(message);
+            }
+
+            cart.getItemList().add(new CartItem(phone, quantity));
+        }
+        recalculateCart(cart);
 
     }
 
@@ -103,6 +120,10 @@ public class HttpSessionCartService implements CartService {
         } else {
             return BigDecimal.ZERO;
         }
+    }
+
+    private boolean isEnoughStock(long cartItemQuantity, long quantityToAdd, Integer stock) {
+        return cartItemQuantity + quantityToAdd <= stock;
     }
 
     public void setPhoneDao(PhoneDao phoneDao) {
