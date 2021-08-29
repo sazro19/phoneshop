@@ -33,11 +33,13 @@ public class JdbcPhoneDao implements PhoneDao {
             "frontCameraMegapixels, ramGb, internalStorageGb, batteryCapacityMah, " +
             "talkTimeHours, standByTimeHours, bluetooth, positioning, imageUrl, description, " +
             "colors.id AS colors_id, " +
-            "colors.code AS colors_code " +
+            "colors.code AS colors_code, " +
+            "stocks.stock AS stock " +
             "FROM (SELECT " +
             "* FROM phones WHERE phones.id = ?) AS phones " +
             "LEFT JOIN phone2color ON phones.id = phone2color.phoneId " +
-            "LEFT JOIN colors ON colors.id = phone2color.colorId ";
+            "LEFT JOIN colors ON colors.id = phone2color.colorId " +
+            "LEFT JOIN stocks ON phones.id = stocks.phoneId";
 
     private static final String SELECT_ALL_WITH_OFFSET_AND_LIMIT = "SELECT phonesWithColor.id AS id, brand, " +
             "model, price, displaySizeInches, weightGr, lengthMm, widthMm, heightMm, " +
@@ -64,7 +66,8 @@ public class JdbcPhoneDao implements PhoneDao {
             "announced, deviceType, os, displayResolution, pixelDensity, displayTechnology, " +
             "backCameraMegapixels, frontCameraMegapixels, ramGb, internalStorageGb, batteryCapacityMah, " +
             "talkTimeHours, standByTimeHours, bluetooth, positioning, imageUrl, description, " +
-            "colors.id AS colors_id, colors.code AS colors_code " +
+            "colors.id AS colors_id, colors.code AS colors_code, " +
+            "stocks.stock AS stock " +
             "FROM " +
             "(SELECT * FROM phones " +
             "WHERE phones.id NOT IN " +

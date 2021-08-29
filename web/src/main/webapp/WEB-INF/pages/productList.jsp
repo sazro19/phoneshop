@@ -46,7 +46,7 @@
             <img src="https://raw.githubusercontent.com/andrewosipenko/phoneshop-ext-images/master/${phone.imageUrl}">
           </td>
           <td>${phone.brand}</td>
-          <td>${phone.model}</td>
+          <td><a href="${pageContext.request.contextPath}/productDetails?id=${phone.id}">${phone.model}</a></td>
           <td>
             <c:forEach var="color" items="${phone.colors}">
               ${color.toString()}
