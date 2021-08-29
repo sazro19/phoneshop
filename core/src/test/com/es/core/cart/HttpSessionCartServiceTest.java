@@ -1,70 +1,69 @@
 package com.es.core.cart;
 
-import com.es.core.config.TestConfig;
-import com.es.core.model.phone.Color;
+import com.es.core.exceptions.NotEnoughStockException;
 import com.es.core.model.phone.Phone;
+import com.es.core.model.phone.PhoneDao;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.init.DatabasePopulator;
-import org.springframework.jdbc.datasource.init.DatabasePopulatorUtils;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.servlet.http.HttpSession;
-import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = TestConfig.class)
+@RunWith(MockitoJUnitRunner.class)
 public class HttpSessionCartServiceTest {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-    @Autowired
-    private DataSource dataSource;
+    @InjectMocks
+    private HttpSessionCartService cartService;
 
-    @Autowired
-    private CartService cartService;
+    @Mock
+    private PhoneDao phoneDao;
 
-    private static final String SELECT_BY_ID = "SELECT * FROM phones WHERE phones.id = ?";
-    private static final String SELECT_COLORS_BY_PHONE_ID = "SELECT colors.id, colors.code FROM phone2color " +
-            "JOIN colors ON phone2color.colorId = colors.id " +
-            "WHERE phoneId = ?";
+    private Phone firstTestPhone;
+    private Phone secondTestPhone;
+    private Phone thirdTestPhone;
 
-    private final List<Long> idList = Arrays.asList(1000L, 1001L, 1002L, 1003L, 1004L, 1005L, 1006L);
-    private Map<Long, Phone> idPhoneMap;
+    private static final Long FIRST_ID = 1L;
+    private static final Long SECOND_ID = 2L;
+    private static final Long THIRD_ID = 3L;
+    private static final BigDecimal FIRST_PRICE = new BigDecimal(100);
+    private static final BigDecimal SECOND_PRICE = new BigDecimal(200);
+    private static final BigDecimal THIRD_PRICE = new BigDecimal(300);
 
     @Before
-    public void refresh() {
-        Resource initSchema = new ClassPathResource("db/schema.sql");
-        Resource testData = new ClassPathResource("db/test-demodata.sql");
-        DatabasePopulator databasePopulator = new ResourceDatabasePopulator(initSchema, testData);
-        DatabasePopulatorUtils.execute(databasePopulator, dataSource);
+    public void setup() {
+        setupTestPhones();
+    }
 
-        idPhoneMap = new LinkedHashMap<>();
-        for (long id : idList) {
-            Phone testPhone = jdbcTemplate.queryForObject(SELECT_BY_ID,
-                    new BeanPropertyRowMapper<>(Phone.class), id);
-            List<Color> testPhoneColors = jdbcTemplate.query(SELECT_COLORS_BY_PHONE_ID, new Object[]{id},
-                    new BeanPropertyRowMapper<>(Color.class));
-            testPhone.setColors(new HashSet<>(testPhoneColors));
-            idPhoneMap.put(id, testPhone);
-        }
+    private void setupTestPhones() {
+        firstTestPhone = new Phone();
+        firstTestPhone.setId(FIRST_ID);
+        firstTestPhone.setPrice(FIRST_PRICE);
+
+        secondTestPhone = new Phone();
+        secondTestPhone.setId(SECOND_ID);
+        secondTestPhone.setPrice(SECOND_PRICE);
+
+        thirdTestPhone = new Phone();
+        thirdTestPhone.setId(THIRD_ID);
+        thirdTestPhone.setPrice(THIRD_PRICE);
     }
 
     @Test
     public void getCartTest() {
+        when(phoneDao.get(FIRST_ID)).thenReturn(Optional.ofNullable(firstTestPhone));
+
+        firstTestPhone.setStock(10);
         HttpSession firstSession = new MockHttpSession();
         HttpSession secondSession = new MockHttpSession();
         Cart firstCart = cartService.getCart(firstSession);
@@ -73,26 +72,121 @@ public class HttpSessionCartServiceTest {
         assertTrue(firstCart.getItemList().isEmpty());
         assertNotEquals(firstCart, secondCart);
 
-        Phone phone = idPhoneMap.get(idList.get(3));
-        cartService.addPhone(firstCart, phone.getId(), 2L);
+        cartService.addPhone(firstCart, firstTestPhone.getId(), 2L);
 
         assertEquals(1, cartService.getCart(firstSession).getItemList().size());
     }
 
     @Test
     public void addPhoneTest() {
+        when(phoneDao.get(SECOND_ID)).thenReturn(Optional.ofNullable(secondTestPhone));
+
         HttpSession session = new MockHttpSession();
         Cart cart = cartService.getCart(session);
+        secondTestPhone.setStock(10);
 
-        Phone phone = idPhoneMap.get(idList.get(3));
-        BigDecimal price = phone.getPrice();
+        BigDecimal price = secondTestPhone.getPrice();
         long quantity = 2L;
         BigDecimal expectedPrice = price.multiply(BigDecimal.valueOf(quantity));
 
-        cartService.addPhone(cart, phone.getId(), quantity);
+        cartService.addPhone(cart, secondTestPhone.getId(), quantity);
 
         assertEquals(1, cartService.getCart(session).getItemList().size());
         assertEquals(expectedPrice, cart.getTotalCost());
         assertEquals(quantity, cart.getTotalQuantity());
+    }
+
+    @Test(expected = NotEnoughStockException.class)
+    public void notEnoughStockAddPhoneTest() {
+        when(phoneDao.get(THIRD_ID)).thenReturn(Optional.ofNullable(thirdTestPhone));
+
+        HttpSession session = new MockHttpSession();
+        Cart cart = cartService.getCart(session);
+        thirdTestPhone.setStock(1);
+
+        long quantity = 10L;
+
+        cartService.addPhone(cart, thirdTestPhone.getId(), quantity);
+    }
+
+    @Test
+    public void updateTest() {
+        when(phoneDao.get(FIRST_ID)).thenReturn(Optional.ofNullable(firstTestPhone));
+        when(phoneDao.get(SECOND_ID)).thenReturn(Optional.ofNullable(secondTestPhone));
+        when(phoneDao.get(THIRD_ID)).thenReturn(Optional.ofNullable(thirdTestPhone));
+
+        HttpSession session = new MockHttpSession();
+        Cart cart = cartService.getCart(session);
+        firstTestPhone.setStock(10);
+        secondTestPhone.setStock(10);
+        thirdTestPhone.setStock(10);
+
+        cartService.addPhone(cart, firstTestPhone.getId(), 1L);
+        cartService.addPhone(cart, secondTestPhone.getId(), 2L);
+        cartService.addPhone(cart, thirdTestPhone.getId(), 3L);
+
+        assertEquals(1L, cart.getItemList().get(0).getQuantity());
+        assertEquals(2L, cart.getItemList().get(1).getQuantity());
+        assertEquals(3L, cart.getItemList().get(2).getQuantity());
+
+        Map<Long, Long> items = new HashMap<>();
+        items.put(firstTestPhone.getId(), 5L);
+        items.put(secondTestPhone.getId(), 6L);
+        items.put(thirdTestPhone.getId(), 7L);
+
+        cartService.update(cart, items);
+
+        assertEquals(5L, cart.getItemList().get(0).getQuantity());
+        assertEquals(6L, cart.getItemList().get(1).getQuantity());
+        assertEquals(7L, cart.getItemList().get(2).getQuantity());
+    }
+
+    @Test(expected = NotEnoughStockException.class)
+    public void notEnoughStockUpdateTest() {
+        when(phoneDao.get(FIRST_ID)).thenReturn(Optional.ofNullable(firstTestPhone));
+        when(phoneDao.get(SECOND_ID)).thenReturn(Optional.ofNullable(secondTestPhone));
+        when(phoneDao.get(THIRD_ID)).thenReturn(Optional.ofNullable(thirdTestPhone));
+
+        HttpSession session = new MockHttpSession();
+        Cart cart = cartService.getCart(session);
+        firstTestPhone.setStock(3);
+        secondTestPhone.setStock(10);
+        thirdTestPhone.setStock(10);
+
+        cartService.addPhone(cart, firstTestPhone.getId(), 1L);
+        cartService.addPhone(cart, secondTestPhone.getId(), 2L);
+        cartService.addPhone(cart, thirdTestPhone.getId(), 3L);
+
+        assertEquals(1L, cart.getItemList().get(0).getQuantity());
+        assertEquals(2L, cart.getItemList().get(1).getQuantity());
+        assertEquals(3L, cart.getItemList().get(2).getQuantity());
+
+        Map<Long, Long> items = new HashMap<>();
+        items.put(firstTestPhone.getId(), 5L);
+        items.put(secondTestPhone.getId(), 6L);
+        items.put(thirdTestPhone.getId(), 7L);
+
+        cartService.update(cart, items);
+
+        assertEquals(5L, cart.getItemList().get(0).getQuantity());
+        assertEquals(6L, cart.getItemList().get(1).getQuantity());
+        assertEquals(7L, cart.getItemList().get(2).getQuantity());
+    }
+
+    @Test
+    public void removeTest() {
+        when(phoneDao.get(FIRST_ID)).thenReturn(Optional.ofNullable(firstTestPhone));
+
+        HttpSession session = new MockHttpSession();
+        Cart cart = cartService.getCart(session);
+        firstTestPhone.setStock(3);
+
+        cartService.addPhone(cart, firstTestPhone.getId(), 1L);
+
+        assertEquals(1L, cart.getItemList().get(0).getQuantity());
+
+        cartService.remove(cart, firstTestPhone.getId());
+
+        assertTrue(cart.getItemList().isEmpty());
     }
 }

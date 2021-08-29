@@ -71,17 +71,12 @@ public class CartPageController {
         model.addAttribute("updated", true);
         try {
             cartService.update(cart, items);
-            if (!errors.isEmpty()) {
-                model.addAttribute("errors", errors);
-            }
         } catch (IllegalArgumentException | NotEnoughStockException e) {
             if (e.getClass().equals(NotEnoughStockException.class)) {
                 errors.put(((NotEnoughStockException) e).getId(), e.getMessage());
             }
-            model.addAttribute("errors", errors);
-            model.addAttribute("cart", cart);
-            return "cart";
         }
+        model.addAttribute("errors", errors);
         model.addAttribute("cart", cart);
         return "cart";
     }
