@@ -29,10 +29,10 @@ public class ProductDetailsPageController {
         }
 
         Optional<Phone> phoneOptional = phoneDao.get(phoneId);
-            if (!phoneOptional.isPresent()) {
-                throw new ProductNotFoundException();
-            }
-            model.addAttribute("phone", phoneOptional.get());
+        if (!phoneOptional.isPresent()) {
+            throw new ProductNotFoundException();
+        }
+        model.addAttribute("phone", phoneOptional.get());
 
         return "productDetails";
     }
