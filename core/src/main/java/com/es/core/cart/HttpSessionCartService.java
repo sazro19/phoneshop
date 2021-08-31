@@ -128,16 +128,11 @@ public class HttpSessionCartService implements CartService {
     }
 
     private void recalculateTotalCost(Cart cart) {
-        cart.setDeliveryCost(calculateDeliveryCost());
         cart.setTotalCost(cart.getItemList()
                 .stream()
                 .map(this::calculateCartItemCost)
                 .reduce(BigDecimal::add)
                 .orElse(BigDecimal.ZERO));
-    }
-
-    private BigDecimal calculateDeliveryCost() {
-        return new BigDecimal(0);
     }
 
     private BigDecimal calculateCartItemCost(CartItem cartItem) {

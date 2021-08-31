@@ -14,15 +14,12 @@ public class Cart implements Serializable {
 
     private BigDecimal totalCost;
 
-    private BigDecimal deliveryCost;
-
     private final Currency currency = Currency.getInstance(Locale.US);
 
     public Cart() {
         this.itemList = new ArrayList<>();
         this.totalQuantity = 0L;
         this.totalCost = new BigDecimal(0);
-        this.deliveryCost = new BigDecimal(0);
     }
 
     public long getTotalQuantity() {
@@ -39,14 +36,6 @@ public class Cart implements Serializable {
 
     public void setTotalCost(BigDecimal totalCost) {
         this.totalCost = totalCost;
-    }
-
-    public BigDecimal getDeliveryCost() {
-        return deliveryCost;
-    }
-
-    public void setDeliveryCost(BigDecimal deliveryCost) {
-        this.deliveryCost = deliveryCost;
     }
 
     public Currency getCurrency() {
