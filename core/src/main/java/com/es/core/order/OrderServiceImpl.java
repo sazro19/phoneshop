@@ -1,8 +1,11 @@
 package com.es.core.order;
 
 import com.es.core.cart.Cart;
+import com.es.core.exceptions.NotEnoughStockException;
 import com.es.core.model.order.Order;
+import com.es.core.model.order.OrderDao;
 import com.es.core.model.order.OrderItem;
+import com.es.core.model.phone.PhoneDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -11,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @PropertySource("classpath:/config/application.properties")
@@ -18,6 +22,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    private OrderDao jdbcOrderDao;
+
+    @Autowired
+    private PhoneDao phoneDao;
 
     @Override
     public Order createOrder(Cart cart) {
@@ -30,7 +40,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void placeOrder(Order order) {
-        throw new UnsupportedOperationException("TODO");
+        order.getOrderItems().forEach(orderItem -> {
+            if (!isInStock(orderItem)) {
+                throw new NotEnoughStockException();
+            }
+        });
+        order.setSecureId(UUID.randomUUID().toString());
+        jdbcOrderDao.save(order);
     }
 
     private List<OrderItem> getOrderItemsFromCart(Cart cart, Order order) {
@@ -52,5 +68,11 @@ public class OrderServiceImpl implements OrderService {
         order.setDeliveryPrice(new BigDecimal(environment.getProperty("delivery.price")));
         order.setSubtotal(cart.getTotalCost());
         order.setTotalPrice(order.getSubtotal().add(order.getDeliveryPrice()));
+    }
+
+    private boolean isInStock(OrderItem orderItem) {
+        return phoneDao.get(orderItem.getPhone().getId())
+                .filter(phone -> phone.getStock() >= orderItem.getQuantity())
+                .isPresent();
     }
 }

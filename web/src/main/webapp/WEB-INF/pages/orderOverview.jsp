@@ -4,13 +4,8 @@
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<tags:master pageTitle="Order">
+<tags:master pageTitle="OrderOverview">
   <h1>Order</h1>
-  <c:if test="${not empty customerInfoErrors or not empty customerInfo}">
-    <div class="alert alert-danger" role="alert">
-      Error occurred while placing order
-    </div>
-  </c:if>
   <form action="${pageContext.request.contextPath}/productList">
     <button>
       Back to product list
@@ -36,7 +31,6 @@
         </tr>
       </thead>
       <c:forEach var="orderItem" items="${order.orderItems}" varStatus="statusOrderItems">
-        <c:set var="error" value="${quantityErrors[orderItem.phone.id]}"/>
         <tr class="row-${statusOrderItems.index % 2 == 0 ? "even" : ""}">
           <td>${orderItem.phone.brand}</td>
           <td><a href="${pageContext.request.contextPath}/productDetails?id=${orderItem.phone.id}">${orderItem.phone.model}</a></td>
@@ -50,11 +44,6 @@
           <td>
             <fmt:formatNumber value="${orderItem.quantity}" var="quantity"/>
             ${quantity}
-            <c:if test="${not empty error}">
-              <div class="error">
-                  ${error}
-              </div>
-            </c:if>
           </td>
         </tr>
       </c:forEach>
@@ -84,22 +73,12 @@
       </tr>
     </table>
 
-  <form method="post" action="${pageContext.request.contextPath}/order">
-    <tags:orderRowForm name="firstName" label="First name" customer="${customerInfo}"
-                       errors="${customerInfoErrors}"/>
-    <tags:orderRowForm name="lastName" label="Last name" customer="${customerInfo}"
-                       errors="${customerInfoErrors}"/>
-    <tags:orderRowForm name="deliveryAddress" label="Address" customer="${customerInfo}"
-                       errors="${customerInfoErrors}"/>
-    <tags:orderRowForm name="contactPhoneNo" label="Phone" customer="${customerInfo}"
-                       errors="${customerInfoErrors}"/>
-    <div>
-      <label>
-        <textarea name="additionalInformation" rows="5" placeholder="Additional information">
-          ${not empty customerInfo ? customerInfo.additionalInformation : ""}
-        </textarea>
-      </label>
-    </div>
-    <button type="submit" class="order-btn btn btn-outline-success">Order</button>
-  </form>
+    <tags:orderOverviewRow name="firstName" label="First name" order="${order}"/>
+    <tags:orderOverviewRow name="lastName" label="Last name" order="${order}"/>
+    <tags:orderOverviewRow name="deliveryAddress" label="Address" order="${order}"/>
+    <tags:orderOverviewRow name="contactPhoneNo" label="Phone" order="${order}"/>
+  Additional information:
+  <div class="description">
+      ${order.additionalInformation}
+  </div>
 </tags:master>

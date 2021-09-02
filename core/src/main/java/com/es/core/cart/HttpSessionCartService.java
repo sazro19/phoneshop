@@ -8,10 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +20,8 @@ public class HttpSessionCartService implements CartService {
     private static final String NOT_ENOUGH_STOCK_MESSAGE = "Not enough stock";
 
     private static final String NOTHING_TO_UPDATE_MESSAGE = "Nothing to update";
+
+    private static final String QUANTITY_OUT_OF_STOCK_AND_CHANGED_MESSAGE = "Not enough stock, quantity has been decreased";
 
     @Autowired
     private PhoneDao phoneDao;
@@ -104,6 +103,27 @@ public class HttpSessionCartService implements CartService {
         phoneOptional.ifPresent(phone ->
                 cart.getItemList().removeIf(cartItem ->
                         phone.equals(cartItem.getPhone())));
+        recalculateCart(cart);
+    }
+
+    @Override
+    public Map<Long, String> checkCartForEnoughQuantityItems(Cart cart) {
+        Map<Long, String> quantityErrors = new HashMap<>();
+
+        cart.getItemList().forEach(cartItem -> phoneDao.get(cartItem.getPhone().getId())
+                .ifPresent(phone -> {
+                    long actualQuantity = phone.getStock();
+                    if (actualQuantity < cartItem.getQuantity()) {
+                        cartItem.setQuantity(actualQuantity);
+                        quantityErrors.put(cartItem.getPhone().getId(), QUANTITY_OUT_OF_STOCK_AND_CHANGED_MESSAGE);
+                    }
+                }));
+        recalculateCart(cart);
+        return quantityErrors;
+    }
+
+    @Override
+    public void recalculate(Cart cart) {
         recalculateCart(cart);
     }
 

@@ -5,19 +5,12 @@
 
 <%@ attribute name="name" required="true" %>
 <%@ attribute name="label" required="true" %>
-<%@ attribute name="customer" required="true" type="com.es.phoneshop.web.controller.dto.CustomerInfoDto" %>
-<%@ attribute name="errors" required="true" type="java.util.Map" %>
+<%@ attribute name="order" required="true" type="com.es.core.model.order.Order" %>
 
 <div>
-  <c:set var="error" value="${errors[name]}"/>
-  <label for="${name}">${label}*</label>
+  <label for="${name}">${label}</label>
   <div class="col-sm-2">
     <input type="text" id="${name}" name="${name}"
-           value="${not empty customer ? customer[name] : ""}">
+           value="${order[name]}">
   </div>
-  <c:if test="${not empty errors}">
-    <div class="error">
-        ${error}
-    </div>
-  </c:if>
 </div>
