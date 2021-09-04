@@ -5,7 +5,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <tags:master pageTitle="OrderOverview">
-  <h1>Order</h1>
+  <h1>Thank you for your order</h1>
   <form action="${pageContext.request.contextPath}/productList">
     <button>
       Back to product list
@@ -81,4 +81,9 @@
   <div class="description">
       ${order.additionalInformation}
   </div>
+  <form action="${pageContext.request.contextPath}/productList">
+    <button>
+      Back to shopping
+    </button>
+  </form>
 </tags:master>

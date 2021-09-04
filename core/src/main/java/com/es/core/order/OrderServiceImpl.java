@@ -5,7 +5,10 @@ import com.es.core.exceptions.NotEnoughStockException;
 import com.es.core.model.order.Order;
 import com.es.core.model.order.OrderDao;
 import com.es.core.model.order.OrderItem;
+import com.es.core.model.phone.Phone;
 import com.es.core.model.phone.PhoneDao;
+import com.es.core.model.phone.stock.Stock;
+import com.es.core.model.phone.stock.StockDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
@@ -29,6 +32,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private PhoneDao phoneDao;
 
+    @Autowired
+    private StockDao stockDao;
+
     @Override
     public Order createOrder(Cart cart) {
         Order order = new Order();
@@ -47,6 +53,8 @@ public class OrderServiceImpl implements OrderService {
         });
         order.setSecureId(UUID.randomUUID().toString());
         jdbcOrderDao.save(order);
+
+        updateStock(order);
     }
 
     private List<OrderItem> getOrderItemsFromCart(Cart cart, Order order) {
@@ -74,5 +82,16 @@ public class OrderServiceImpl implements OrderService {
         return phoneDao.get(orderItem.getPhone().getId())
                 .filter(phone -> phone.getStock() >= orderItem.getQuantity())
                 .isPresent();
+    }
+
+    private void updateStock(Order order) {
+        order.getOrderItems().forEach(orderItem -> {
+            Phone phone = orderItem.getPhone();
+            Stock stock = stockDao.get(phone.getId()).orElse(new Stock());
+            long actualStock = stock.getStock() - orderItem.getQuantity();
+
+            stock.setStock((int) actualStock);
+            stockDao.update(stock);
+        });
     }
 }

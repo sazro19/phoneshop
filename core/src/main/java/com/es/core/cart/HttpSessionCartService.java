@@ -4,6 +4,8 @@ import com.es.core.exceptions.NotEnoughStockException;
 import com.es.core.model.phone.Phone;
 import com.es.core.model.phone.PhoneDao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
@@ -12,19 +14,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@PropertySource("classpath:/config/errors.properties")
 public class HttpSessionCartService implements CartService {
     private static final String CART_SESSION_ATTRIBUTE = HttpSessionCartService.class.getName() + ".cart";
 
-    private static final String INVALID_QUANTITY_MESSAGE = "Invalid quantity";
-
-    private static final String NOT_ENOUGH_STOCK_MESSAGE = "Not enough stock";
-
-    private static final String NOTHING_TO_UPDATE_MESSAGE = "Nothing to update";
-
-    private static final String QUANTITY_OUT_OF_STOCK_AND_CHANGED_MESSAGE = "Not enough stock, quantity has been decreased";
-
     @Autowired
     private PhoneDao phoneDao;
+
+    @Autowired
+    private Environment environment;
 
     @Override
     public Cart getCart(HttpSession session) {
@@ -41,7 +39,7 @@ public class HttpSessionCartService implements CartService {
     @Override
     public void addPhone(Cart cart, Long phoneId, Long quantity) {
         if (quantity <= 0) {
-            throw new IllegalArgumentException(INVALID_QUANTITY_MESSAGE);
+                throw new IllegalArgumentException(environment.getProperty("error.invalidQuantity"));
         }
 
         Phone phone;
@@ -54,7 +52,7 @@ public class HttpSessionCartService implements CartService {
         Optional<CartItem> cartItemOptional = getExistingItem(cart, phone);
         if (cartItemOptional.isPresent()) {
             if (isNotEnoughStock(cartItemOptional.get().getQuantity(), quantity, phone.getStock())) {
-                String message = NOT_ENOUGH_STOCK_MESSAGE + ". " +
+                String message = environment.getProperty("error.notEnoughStock") + ". " +
                         (phone.getStock() - cartItemOptional.get().getQuantity()) + " available";
                 throw new NotEnoughStockException(message);
             }
@@ -63,7 +61,7 @@ public class HttpSessionCartService implements CartService {
             cartItem.setQuantity(cartItem.getQuantity() + quantity);
         } else {
             if (isNotEnoughStock(0L, quantity, phone.getStock())) {
-                String message = NOT_ENOUGH_STOCK_MESSAGE + ". " + phone.getStock() + " available";
+                String message = environment.getProperty("error.notEnoughStock") + ". " + phone.getStock() + " available";
                 throw new NotEnoughStockException(phoneId, message);
             }
 
@@ -80,7 +78,7 @@ public class HttpSessionCartService implements CartService {
                 .collect(Collectors.toList());
 
         if (cartItemListToUpdate.isEmpty()) {
-            throw new IllegalArgumentException(NOTHING_TO_UPDATE_MESSAGE);
+            throw new IllegalArgumentException(environment.getProperty("error.nothingToUpdate"));
         }
 
         cartItemListToUpdate.forEach(cartItem -> {
@@ -88,7 +86,7 @@ public class HttpSessionCartService implements CartService {
 
             if (isNotEnoughStock(0L, quantity, cartItem.getPhone().getStock())) {
                 recalculateCart(cart);
-                String message = NOT_ENOUGH_STOCK_MESSAGE + ". " + cartItem.getPhone().getStock() + " available";
+                String message = environment.getProperty("error.notEnoughStock") + ". " + cartItem.getPhone().getStock() + " available";
                 throw new NotEnoughStockException(cartItem.getPhone().getId(), message);
             }
 
@@ -115,7 +113,7 @@ public class HttpSessionCartService implements CartService {
                     long actualQuantity = phone.getStock();
                     if (actualQuantity < cartItem.getQuantity()) {
                         cartItem.setQuantity(actualQuantity);
-                        quantityErrors.put(cartItem.getPhone().getId(), QUANTITY_OUT_OF_STOCK_AND_CHANGED_MESSAGE);
+                        quantityErrors.put(cartItem.getPhone().getId(), environment.getProperty("error.changedQuantity"));
                     }
                 }));
         recalculateCart(cart);

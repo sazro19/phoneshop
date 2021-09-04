@@ -66,17 +66,14 @@ public class OrderPageController {
         if (bindingResult.hasErrors()) {
             bindingResult.getAllErrors().forEach(objectError -> customerInfoErrors.put(objectError.getCode(),
                     objectError.getDefaultMessage()));
-            model.addAttribute(CUSTOMER_INFO_ERRORS_ATTRIBUTE_NAME, customerInfoErrors);
-            model.addAttribute(QUANTITY_ERRORS_ATTRIBUTE_NAME, quantityErrors);
-            model.addAttribute(CUSTOMER_INFO_ATTRIBUTE_NAME, customerInfoDto);
-            model.addAttribute(ORDER_ATTRIBUTE_NAME, order);
-            return "order";
         } else {
             setOrderFields(order, customerInfoDto);
         }
 
         try {
-            orderService.placeOrder(order);
+            if (customerInfoErrors.isEmpty()) {
+                orderService.placeOrder(order);
+            }
         } catch (NotEnoughStockException e) {
             quantityErrors = cartService.checkCartForEnoughQuantityItems(cart);
         }

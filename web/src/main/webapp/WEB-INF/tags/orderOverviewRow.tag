@@ -7,10 +7,9 @@
 <%@ attribute name="label" required="true" %>
 <%@ attribute name="order" required="true" type="com.es.core.model.order.Order" %>
 
-<div>
+<div class="form-group row order-info-row">
   <label for="${name}">${label}</label>
   <div class="col-sm-2">
-    <input type="text" id="${name}" name="${name}"
-           value="${order[name]}">
+    ${order[name]}
   </div>
 </div>
