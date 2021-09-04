@@ -2,6 +2,7 @@ package com.es.core.model.order;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 public class Order {
     private Long id;
@@ -119,5 +120,18 @@ public class Order {
 
     public void setAdditionalInformation(String additionalInformation) {
         this.additionalInformation = additionalInformation;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Order order = (Order) o;
+        return Objects.equals(id, order.id) && Objects.equals(secureId, order.secureId) && Objects.equals(orderItems, order.orderItems) && Objects.equals(subtotal, order.subtotal) && Objects.equals(deliveryPrice, order.deliveryPrice) && Objects.equals(totalPrice, order.totalPrice) && Objects.equals(firstName, order.firstName) && Objects.equals(lastName, order.lastName) && Objects.equals(deliveryAddress, order.deliveryAddress) && Objects.equals(contactPhoneNo, order.contactPhoneNo) && Objects.equals(additionalInformation, order.additionalInformation) && status == order.status;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, secureId);
     }
 }

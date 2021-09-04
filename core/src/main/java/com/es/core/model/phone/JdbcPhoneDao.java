@@ -1,5 +1,6 @@
 package com.es.core.model.phone;
 
+import com.es.core.model.JdbcInsertClass;
 import com.es.core.model.sort.SortCriteria;
 import com.es.core.model.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,6 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +28,9 @@ public class JdbcPhoneDao implements PhoneDao {
 
     @Autowired
     private ResultSetExtractor<List<Phone>> resultSetExtractor;
+
+    @Autowired
+    private JdbcInsertClass jdbcInsertClass;
 
     private static final String SELECT_PHONE_BY_ID_QUERY = "SELECT phones.id AS id, brand, model, price, " +
             "displaySizeInches, weightGr, lengthMm, widthMm, heightMm, announced, deviceType, " +
@@ -89,7 +92,7 @@ public class JdbcPhoneDao implements PhoneDao {
             "displaySizeInches=:displaySizeInches, weightGr=:weightGr, lengthMm=:lengthMm, widthMm=:widthMm, " +
             "heightMm=:heightMm, announced=:announced, deviceType=:deviceType, os=:os, displayResolution=:displayResolution, " +
             "pixelDensity=:pixelDensity, displayTechnology=:displayTechnology, backCameraMegapixels=:backCameraMegapixels, " +
-            "frontCameraMegapixels=:frontCameraMegapixels, ra   mGb=:ramGb, internalStorageGb=:internalStorageGb, " +
+            "frontCameraMegapixels=:frontCameraMegapixels, ramGb=:ramGb, internalStorageGb=:internalStorageGb, " +
             "batteryCapacityMah=:batteryCapacityMah, talkTimeHours=:talkTimeHours, standByTimeHours=:standByTimeHours, " +
             "bluetooth=:bluetooth, positioning=:positioning, imageUrl=:imageUrl, description=:description " +
             "WHERE phones.id=:id";
@@ -175,15 +178,9 @@ public class JdbcPhoneDao implements PhoneDao {
     }
 
     private void insertNewPhone(Phone phone) {
-        Long newId = insertAndReturnGeneratedKey(new BeanPropertySqlParameterSource(phone)).longValue();
+        Long newId = jdbcInsertClass.insertAndReturnGeneratedKey(PHONES_TABLE_NAME,
+                new BeanPropertySqlParameterSource(phone), PhoneFieldConstants.PHONE_ID_FIELD).longValue();
         phone.setId(newId);
-    }
-
-    private Number insertAndReturnGeneratedKey(SqlParameterSource parameters) {
-        return new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName(PHONES_TABLE_NAME)
-                .usingGeneratedKeyColumns(PhoneFieldConstants.PHONE_ID_FIELD)
-                .executeAndReturnKey(parameters);
     }
 
     private void refreshColors(final Phone phone) {

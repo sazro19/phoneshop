@@ -2,13 +2,16 @@ package com.es.core.config;
 
 import com.es.core.cart.CartService;
 import com.es.core.cart.HttpSessionCartService;
+import com.es.core.model.JdbcInsertClass;
+import com.es.core.model.order.JdbcOrderDao;
+import com.es.core.model.order.OrderDao;
+import com.es.core.model.order.extractorConfig.OrderExtractorConfig;
 import com.es.core.model.phone.JdbcPhoneDao;
+import com.es.core.model.phone.stock.JdbcStockDao;
+import com.es.core.model.phone.stock.StockDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -21,6 +24,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import javax.sql.DataSource;
 
 @Configuration
+@Import(OrderExtractorConfig.class)
 @ComponentScan("com.es.core.model.phone")
 @PropertySource("classpath:/test-config/test.properties")
 public class TestConfig {
@@ -59,5 +63,20 @@ public class TestConfig {
         HttpSessionCartService cartService = new HttpSessionCartService();
         cartService.setPhoneDao(phoneDao);
         return cartService;
+    }
+
+    @Bean
+    public JdbcInsertClass jdbcInsertClass() {
+        return new JdbcInsertClass();
+    }
+
+    @Bean
+    public OrderDao orderDao() {
+        return new JdbcOrderDao();
+    }
+
+    @Bean
+    public StockDao stockDao() {
+        return new JdbcStockDao();
     }
 }

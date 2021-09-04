@@ -27,7 +27,7 @@ public class OrderServiceImpl implements OrderService {
     private Environment environment;
 
     @Autowired
-    private OrderDao jdbcOrderDao;
+    private OrderDao orderDao;
 
     @Autowired
     private PhoneDao phoneDao;
@@ -52,7 +52,7 @@ public class OrderServiceImpl implements OrderService {
             }
         });
         order.setSecureId(UUID.randomUUID().toString());
-        jdbcOrderDao.save(order);
+        orderDao.save(order);
 
         updateStock(order);
     }
