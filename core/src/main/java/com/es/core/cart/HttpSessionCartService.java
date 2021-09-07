@@ -10,7 +10,10 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -67,8 +70,7 @@ public class HttpSessionCartService implements CartService {
 
             cart.getItemList().add(new CartItem(phone, quantity));
         }
-        recalculateCart(cart);
-
+        recalculate(cart);
     }
 
     @Override
@@ -85,14 +87,14 @@ public class HttpSessionCartService implements CartService {
             long quantity = items.get(cartItem.getPhone().getId());
 
             if (isNotEnoughStock(0L, quantity, cartItem.getPhone().getStock())) {
-                recalculateCart(cart);
+                recalculate(cart);
                 String message = environment.getProperty("error.notEnoughStock") + ". " + cartItem.getPhone().getStock() + " available";
                 throw new NotEnoughStockException(cartItem.getPhone().getId(), message);
             }
 
             cartItem.setQuantity(quantity);
         });
-        recalculateCart(cart);
+        recalculate(cart);
     }
 
     @Override
@@ -101,12 +103,25 @@ public class HttpSessionCartService implements CartService {
         phoneOptional.ifPresent(phone ->
                 cart.getItemList().removeIf(cartItem ->
                         phone.equals(cartItem.getPhone())));
-        recalculateCart(cart);
+        recalculate(cart);
     }
 
     @Override
     public void recalculate(Cart cart) {
-        recalculateCart(cart);
+        recalculateTotalQuantity(cart);
+        recalculateTotalCost(cart);
+    }
+
+    @Override
+    public void setActualQuantityAndErrors(CartItem cartItem, Map<Long, String> quantityErrors) {
+        phoneDao.get(cartItem.getPhone().getId())
+                .ifPresent(phone -> {
+                    long actualQuantity = phone.getStock();
+                    if (actualQuantity < cartItem.getQuantity()) {
+                        cartItem.setQuantity(actualQuantity);
+                        quantityErrors.put(cartItem.getPhone().getId(), environment.getProperty("error.changedQuantity"));
+                    }
+                });
     }
 
     private Optional<CartItem> getExistingItem(Cart cart, Phone phone) {
@@ -114,11 +129,6 @@ public class HttpSessionCartService implements CartService {
                 .stream()
                 .filter(existingItem -> phone.equals(existingItem.getPhone()))
                 .findAny();
-    }
-
-    private void recalculateCart(Cart cart) {
-        recalculateTotalQuantity(cart);
-        recalculateTotalCost(cart);
     }
 
     private void recalculateTotalQuantity(Cart cart) {

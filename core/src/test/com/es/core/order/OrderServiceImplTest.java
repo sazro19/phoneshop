@@ -124,7 +124,7 @@ public class OrderServiceImplTest {
 
         Order order = orderService.createOrder(cart);
 
-        orderService.placeOrder(order, cart, new HashMap<>());
+        orderService.placeOrder(order);
 
         assertEquals(4, stock1.getStock().intValue());
         assertEquals(2, stock2.getStock().intValue());

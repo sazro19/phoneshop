@@ -18,10 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @PropertySource("classpath:/config/application.properties")
@@ -50,45 +50,27 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = DataAccessException.class)
-    public void placeOrder(Order order, Cart cart, Map<Long, String> quantityErrors) {
+    public void placeOrder(Order order) {
         order.getOrderItems().forEach(orderItem -> {
             if (!isInStock(orderItem)) {
-                CartItem cartItem = cart.getItemList().stream()
-                        .filter(item -> item.getPhone().getId().equals(orderItem.getPhone().getId())).findAny().get();
-                checkAndSetActualQuantity(cartItem, quantityErrors);
+                throw new NotEnoughStockException();
             }
         });
-        if (!quantityErrors.isEmpty()) {
-            throw new NotEnoughStockException();
-        }
         order.setSecureId(UUID.randomUUID().toString());
         orderDao.save(order);
 
         updateStock(order);
     }
 
-    private void checkAndSetActualQuantity(CartItem cartItem, Map<Long, String> quantityErrors) {
-        phoneDao.get(cartItem.getPhone().getId())
-                .ifPresent(phone -> {
-                    long actualQuantity = phone.getStock();
-                    if (actualQuantity < cartItem.getQuantity()) {
-                        cartItem.setQuantity(actualQuantity);
-                        quantityErrors.put(cartItem.getPhone().getId(), environment.getProperty("error.changedQuantity"));
-                    }
-                });
-    }
-
     private List<OrderItem> getOrderItemsFromCart(Cart cart, Order order) {
-        List<OrderItem> orderItems = new ArrayList<>();
-
-        cart.getItemList().forEach(cartItem -> {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setPhone(cartItem.getPhone());
-            orderItem.setQuantity(cartItem.getQuantity());
-
-            orderItems.add(orderItem);
-        });
+        List<OrderItem> orderItems = cart.getItemList().stream()
+                .map(cartItem -> {
+                    OrderItem orderItem = new OrderItem();
+                    orderItem.setOrder(order);
+                    orderItem.setPhone(cartItem.getPhone());
+                    orderItem.setQuantity(cartItem.getQuantity());
+                    return orderItem;
+                }).collect(Collectors.toList());
 
         return orderItems;
     }

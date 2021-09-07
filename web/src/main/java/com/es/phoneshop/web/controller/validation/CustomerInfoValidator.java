@@ -46,15 +46,14 @@ public class CustomerInfoValidator implements Validator {
         }
         if (isStringInvalid(customerInfoDto.getContactPhoneNo())) {
             errors.reject("contactPhoneNo", environment.getProperty("message.required"));
-        }
-        if (isPhoneNumberValid(customerInfoDto.getContactPhoneNo())) {
+        } else if (isPhoneNumberValid(customerInfoDto.getContactPhoneNo())) {
             String message = environment.getProperty("message.invalidPhone") + ", example: " + phoneNumberExample;
             errors.reject("contactPhoneNo", message);
         }
     }
 
     private boolean isStringInvalid(String string) {
-        return string == null || string.replaceAll("[\\s]{2,}", "").isEmpty();
+        return string == null || string.trim().isEmpty();
     }
 
     private boolean isPhoneNumberValid(String phoneNumber) {
@@ -62,15 +61,28 @@ public class CustomerInfoValidator implements Validator {
     }
 
     private void setPhoneNoPatternAndExample() {
-        Locale locale = new Locale(environment.getProperty("local.lang"));
+        Locale locale;
+        switch (environment.getProperty("local.lang").toUpperCase(Locale.ROOT)) {
+            case "US": {
+                locale = Locale.US;
+                break;
+            }
+            case "UK": {
+                locale = Locale.UK;
+                break;
+            }
+            default: {
+                locale = Locale.US;
+            }
+        }
         phoneNoPattern = getPattern(locale);
         phoneNumberExample = environment.getProperty("local.format");
     }
 
     private String getPattern(Locale locale) {
-        if (Locale.US.toString().toLowerCase(Locale.ROOT).equals(locale.toString())) {
+        if (Locale.US.equals(locale)) {
             return US_PATTERN;
-        } else if (Locale.UK.toString().toLowerCase(Locale.ROOT).equals(locale.toString())) {
+        } else if (Locale.UK.equals(locale)) {
             return UK_PATTERN;
         }
         throw new IllegalArgumentException();

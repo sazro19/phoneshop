@@ -10,6 +10,7 @@ import com.es.phoneshop.web.controller.validation.CustomerInfoValidator;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
@@ -20,6 +21,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping(value = "/order")
@@ -64,16 +66,17 @@ public class OrderPageController {
 
         customerInfoValidator.validate(customerInfoDto, bindingResult);
         if (bindingResult.hasErrors()) {
-            bindingResult.getAllErrors().forEach(objectError -> customerInfoErrors.put(objectError.getCode(),
-                    objectError.getDefaultMessage()));
+            customerInfoErrors = bindingResult.getAllErrors().stream()
+                    .collect(Collectors.toMap(ObjectError::getCode, ObjectError::getDefaultMessage));
         } else {
             setOrderFields(order, customerInfoDto);
         }
 
         if (customerInfoErrors.isEmpty()) {
             try {
-                orderService.placeOrder(order, cart, quantityErrors);
+                orderService.placeOrder(order);
             } catch (NotEnoughStockException e) {
+                cart.getItemList().forEach(cartItem -> cartService.setActualQuantityAndErrors(cartItem, quantityErrors));
                 cartService.recalculate(cart);
             }
         }

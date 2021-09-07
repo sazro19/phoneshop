@@ -7,5 +7,5 @@ import java.util.Map;
 
 public interface OrderService {
     Order createOrder(Cart cart);
-    void placeOrder(Order order, Cart cart, Map<Long, String> quantityErrors);
+    void placeOrder(Order order);
 }

@@ -19,4 +19,6 @@ public interface CartService {
     void remove(Cart cart, Long phoneId);
 
     void recalculate(Cart cart);
+
+    void setActualQuantityAndErrors(CartItem cartItem, Map<Long, String> quantityErrors);
 }
