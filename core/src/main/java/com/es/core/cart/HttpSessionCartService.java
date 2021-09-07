@@ -39,7 +39,7 @@ public class HttpSessionCartService implements CartService {
     @Override
     public void addPhone(Cart cart, Long phoneId, Long quantity) {
         if (quantity <= 0) {
-                throw new IllegalArgumentException(environment.getProperty("error.invalidQuantity"));
+            throw new IllegalArgumentException(environment.getProperty("error.invalidQuantity"));
         }
 
         Phone phone;
@@ -102,22 +102,6 @@ public class HttpSessionCartService implements CartService {
                 cart.getItemList().removeIf(cartItem ->
                         phone.equals(cartItem.getPhone())));
         recalculateCart(cart);
-    }
-
-    @Override
-    public Map<Long, String> checkCartForEnoughQuantityItems(Cart cart) {
-        Map<Long, String> quantityErrors = new HashMap<>();
-
-        cart.getItemList().forEach(cartItem -> phoneDao.get(cartItem.getPhone().getId())
-                .ifPresent(phone -> {
-                    long actualQuantity = phone.getStock();
-                    if (actualQuantity < cartItem.getQuantity()) {
-                        cartItem.setQuantity(actualQuantity);
-                        quantityErrors.put(cartItem.getPhone().getId(), environment.getProperty("error.changedQuantity"));
-                    }
-                }));
-        recalculateCart(cart);
-        return quantityErrors;
     }
 
     @Override

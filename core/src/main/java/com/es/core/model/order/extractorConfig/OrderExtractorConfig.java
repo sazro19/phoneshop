@@ -13,14 +13,8 @@ import java.util.List;
 public class OrderExtractorConfig {
 
     @Bean
-    public ResultSetExtractor<List<Order>> orderExtractor(@Qualifier("orderMapper") JdbcTemplateMapperFactory jdbcTemplateMapperFactory) {
+    public ResultSetExtractor<List<Order>> orderExtractor(JdbcTemplateMapperFactory jdbcTemplateMapperFactory) {
         return jdbcTemplateMapperFactory.addKeys("secureId", "orderItems_phone_id")
                 .newResultSetExtractor(Order.class);
-    }
-
-    @Bean
-    @Qualifier("orderMapper")
-    public JdbcTemplateMapperFactory jdbcTemplateMapperFactory() {
-        return JdbcTemplateMapperFactory.newInstance();
     }
 }

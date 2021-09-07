@@ -18,7 +18,5 @@ public interface CartService {
 
     void remove(Cart cart, Long phoneId);
 
-    Map<Long, String> checkCartForEnoughQuantityItems(Cart cart);
-
     void recalculate(Cart cart);
 }

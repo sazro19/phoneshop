@@ -52,9 +52,9 @@ public class OrderPageController {
 
     @PostMapping
     public String placeOrder(CustomerInfoDto customerInfoDto,
-                           Model model,
-                           HttpSession session,
-                           BindingResult bindingResult) {
+                             Model model,
+                             HttpSession session,
+                             BindingResult bindingResult) {
         Cart cart = cartService.getCart(session);
 
         Map<String, String> customerInfoErrors = new HashMap<>();
@@ -70,12 +70,12 @@ public class OrderPageController {
             setOrderFields(order, customerInfoDto);
         }
 
-        try {
-            if (customerInfoErrors.isEmpty()) {
-                orderService.placeOrder(order);
+        if (customerInfoErrors.isEmpty()) {
+            try {
+                orderService.placeOrder(order, cart, quantityErrors);
+            } catch (NotEnoughStockException e) {
+                cartService.recalculate(cart);
             }
-        } catch (NotEnoughStockException e) {
-            quantityErrors = cartService.checkCartForEnoughQuantityItems(cart);
         }
 
         model.addAttribute(CUSTOMER_INFO_ERRORS_ATTRIBUTE_NAME, customerInfoErrors);

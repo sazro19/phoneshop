@@ -68,7 +68,6 @@ public class JdbcOrderDao implements OrderDao {
     private static final String ORDER_ITEMS_TABLE_NAME = "orderItems";
 
     @Override
-    @Transactional(readOnly = true)
     public Optional<Order> get(String secureId) {
         List<Order> result = jdbcTemplate.query(SELECT_ONE_BY_ID_SQL_QUERY, new Object[]{secureId}, orderExtractor);
 
@@ -82,7 +81,6 @@ public class JdbcOrderDao implements OrderDao {
     }
 
     @Override
-    @Transactional(rollbackFor = DataAccessException.class)
     public void save(Order order) {
         if (order.getId() == null) {
             insertOrder(order);

@@ -127,11 +127,11 @@ public class Order {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Order order = (Order) o;
-        return Objects.equals(id, order.id) && Objects.equals(secureId, order.secureId) && Objects.equals(orderItems, order.orderItems) && Objects.equals(subtotal, order.subtotal) && Objects.equals(deliveryPrice, order.deliveryPrice) && Objects.equals(totalPrice, order.totalPrice) && Objects.equals(firstName, order.firstName) && Objects.equals(lastName, order.lastName) && Objects.equals(deliveryAddress, order.deliveryAddress) && Objects.equals(contactPhoneNo, order.contactPhoneNo) && Objects.equals(additionalInformation, order.additionalInformation) && status == order.status;
+        return Objects.equals(secureId, order.secureId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, secureId);
+        return Objects.hash(secureId);
     }
 }

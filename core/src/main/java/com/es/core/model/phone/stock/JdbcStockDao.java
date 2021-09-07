@@ -32,7 +32,6 @@ public class JdbcStockDao implements StockDao {
     }
 
     @Override
-    @Transactional(rollbackFor = DataAccessException.class)
     public void update(final Stock stock) {
         if (stock.getPhoneId() == null) {
             throw new IllegalArgumentException();

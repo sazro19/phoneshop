@@ -1,6 +1,7 @@
 package com.es.core.order;
 
 import com.es.core.cart.Cart;
+import com.es.core.cart.CartItem;
 import com.es.core.exceptions.NotEnoughStockException;
 import com.es.core.model.order.Order;
 import com.es.core.model.order.OrderDao;
@@ -12,11 +13,14 @@ import com.es.core.model.phone.stock.StockDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -45,16 +49,33 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void placeOrder(Order order) {
+    @Transactional(rollbackFor = DataAccessException.class)
+    public void placeOrder(Order order, Cart cart, Map<Long, String> quantityErrors) {
         order.getOrderItems().forEach(orderItem -> {
             if (!isInStock(orderItem)) {
-                throw new NotEnoughStockException();
+                CartItem cartItem = cart.getItemList().stream()
+                        .filter(item -> item.getPhone().getId().equals(orderItem.getPhone().getId())).findAny().get();
+                checkAndSetActualQuantity(cartItem, quantityErrors);
             }
         });
+        if (!quantityErrors.isEmpty()) {
+            throw new NotEnoughStockException();
+        }
         order.setSecureId(UUID.randomUUID().toString());
         orderDao.save(order);
 
         updateStock(order);
+    }
+
+    private void checkAndSetActualQuantity(CartItem cartItem, Map<Long, String> quantityErrors) {
+        phoneDao.get(cartItem.getPhone().getId())
+                .ifPresent(phone -> {
+                    long actualQuantity = phone.getStock();
+                    if (actualQuantity < cartItem.getQuantity()) {
+                        cartItem.setQuantity(actualQuantity);
+                        quantityErrors.put(cartItem.getPhone().getId(), environment.getProperty("error.changedQuantity"));
+                    }
+                });
     }
 
     private List<OrderItem> getOrderItemsFromCart(Cart cart, Order order) {

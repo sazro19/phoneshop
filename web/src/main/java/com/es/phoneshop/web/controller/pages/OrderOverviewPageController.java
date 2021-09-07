@@ -1,5 +1,6 @@
 package com.es.phoneshop.web.controller.pages;
 
+import com.es.core.exceptions.OrderNotFoundException;
 import com.es.core.model.order.Order;
 import com.es.core.model.order.OrderDao;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ public class OrderOverviewPageController {
     @GetMapping("/{orderId}")
     public String orderOverview(@PathVariable String orderId,
                                 Model model) {
-        Order order = orderDao.get(orderId).get();
+        Order order = orderDao.get(orderId).orElseThrow(OrderNotFoundException::new);
 
         model.addAttribute("order", order);
         return "orderOverview";

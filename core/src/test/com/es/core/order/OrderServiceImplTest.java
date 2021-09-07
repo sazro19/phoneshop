@@ -17,10 +17,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
@@ -127,7 +124,7 @@ public class OrderServiceImplTest {
 
         Order order = orderService.createOrder(cart);
 
-        orderService.placeOrder(order);
+        orderService.placeOrder(order, cart, new HashMap<>());
 
         assertEquals(4, stock1.getStock().intValue());
         assertEquals(2, stock2.getStock().intValue());

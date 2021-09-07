@@ -1,7 +1,5 @@
 package com.es.phoneshop.web.controller.validation;
 
-import com.es.core.model.phoneNoPatterns.Local;
-import com.es.core.model.phoneNoPatterns.PhoneNoPatterns;
 import com.es.phoneshop.web.controller.dto.CustomerInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
@@ -10,13 +8,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 
+import java.util.Locale;
+
 @Service
-@PropertySource("classpath:/config/local.properties")
+@PropertySource("classpath:/config/validation.properties")
 public class CustomerInfoValidator implements Validator {
 
-    private static final String FIELD_IS_REQUIRED_MESSAGE = "Field is required";
+    private static final String US_PATTERN = "^(\\([0-9]{3}\\) |[0-9]{3}-)[0-9]{3}-[0-9]{4}$";
 
-    private static final String INVALID_PHONE_NUMBER_FORMAT_MESSAGE = "Invalid phone number";
+    private static final String UK_PATTERN = "^(((\\+44\\s?\\d{4}|\\(?0\\d{4}\\)?)\\s?\\d{3}\\s?\\d{3})|((\\+44\\s?\\d{3}|\\(?0\\d{3}\\)?)\\s?\\d{3}\\s?\\d{4})|((\\+44\\s?\\d{2}|\\(?0\\d{2}\\)?)\\s?\\d{4}\\s?\\d{4}))(\\s?\\#(\\d{4}|\\d{3}))?$";
 
     private String phoneNumberExample;
 
@@ -36,19 +36,19 @@ public class CustomerInfoValidator implements Validator {
         setPhoneNoPatternAndExample();
 
         if (isStringInvalid(customerInfoDto.getFirstName())) {
-            errors.reject("firstName", FIELD_IS_REQUIRED_MESSAGE);
+            errors.reject("firstName", environment.getProperty("message.required"));
         }
         if (isStringInvalid(customerInfoDto.getLastName())) {
-            errors.reject("lastName", FIELD_IS_REQUIRED_MESSAGE);
+            errors.reject("lastName", environment.getProperty("message.required"));
         }
         if (isStringInvalid(customerInfoDto.getDeliveryAddress())) {
-            errors.reject("deliveryAddress", FIELD_IS_REQUIRED_MESSAGE);
+            errors.reject("deliveryAddress", environment.getProperty("message.required"));
         }
         if (isStringInvalid(customerInfoDto.getContactPhoneNo())) {
-            errors.reject("contactPhoneNo", FIELD_IS_REQUIRED_MESSAGE);
+            errors.reject("contactPhoneNo", environment.getProperty("message.required"));
         }
         if (isPhoneNumberValid(customerInfoDto.getContactPhoneNo())) {
-            String message = INVALID_PHONE_NUMBER_FORMAT_MESSAGE + ", example: " + phoneNumberExample;
+            String message = environment.getProperty("message.invalidPhone") + ", example: " + phoneNumberExample;
             errors.reject("contactPhoneNo", message);
         }
     }
@@ -62,8 +62,17 @@ public class CustomerInfoValidator implements Validator {
     }
 
     private void setPhoneNoPatternAndExample() {
-        Local local = Local.valueOf(environment.getProperty("local.lang"));
-        phoneNoPattern = PhoneNoPatterns.getPattern(local);
+        Locale locale = new Locale(environment.getProperty("local.lang"));
+        phoneNoPattern = getPattern(locale);
         phoneNumberExample = environment.getProperty("local.format");
+    }
+
+    private String getPattern(Locale locale) {
+        if (Locale.US.toString().toLowerCase(Locale.ROOT).equals(locale.toString())) {
+            return US_PATTERN;
+        } else if (Locale.UK.toString().toLowerCase(Locale.ROOT).equals(locale.toString())) {
+            return UK_PATTERN;
+        }
+        throw new IllegalArgumentException();
     }
 }
