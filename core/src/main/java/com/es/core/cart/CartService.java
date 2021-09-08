@@ -20,5 +20,5 @@ public interface CartService {
 
     void recalculate(Cart cart);
 
-    void setActualQuantityAndErrors(CartItem cartItem, Map<Long, String> quantityErrors);
+    boolean updateActualQuantity(CartItem cartItem);
 }

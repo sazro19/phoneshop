@@ -7,6 +7,9 @@ import com.es.core.model.order.Order;
 import com.es.core.order.OrderService;
 import com.es.phoneshop.web.controller.dto.CustomerInfoDto;
 import com.es.phoneshop.web.controller.validation.CustomerInfoValidator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping(value = "/order")
+@PropertySource("classpath:/config/validation.properties")
 public class OrderPageController {
     @Resource
     private OrderService orderService;
@@ -34,6 +38,9 @@ public class OrderPageController {
 
     @Resource
     private CustomerInfoValidator customerInfoValidator;
+
+    @Autowired
+    private Environment environment;
 
     public static final String CUSTOMER_INFO_ERRORS_ATTRIBUTE_NAME = "customerInfoErrors";
     public static final String QUANTITY_ERRORS_ATTRIBUTE_NAME = "quantityErrors";
@@ -76,7 +83,11 @@ public class OrderPageController {
             try {
                 orderService.placeOrder(order);
             } catch (NotEnoughStockException e) {
-                cart.getItemList().forEach(cartItem -> cartService.setActualQuantityAndErrors(cartItem, quantityErrors));
+                cart.getItemList().forEach(cartItem -> {
+                    if (cartService.updateActualQuantity(cartItem)) {
+                        quantityErrors.put(cartItem.getPhone().getId(), environment.getProperty("message.changedQuantity"));
+                    }
+                });
                 cartService.recalculate(cart);
             }
         }

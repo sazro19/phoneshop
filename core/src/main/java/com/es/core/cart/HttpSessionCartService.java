@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Service
@@ -113,15 +114,17 @@ public class HttpSessionCartService implements CartService {
     }
 
     @Override
-    public void setActualQuantityAndErrors(CartItem cartItem, Map<Long, String> quantityErrors) {
+    public boolean updateActualQuantity(CartItem cartItem) {
+        AtomicBoolean result = new AtomicBoolean(false);
         phoneDao.get(cartItem.getPhone().getId())
                 .ifPresent(phone -> {
                     long actualQuantity = phone.getStock();
                     if (actualQuantity < cartItem.getQuantity()) {
                         cartItem.setQuantity(actualQuantity);
-                        quantityErrors.put(cartItem.getPhone().getId(), environment.getProperty("error.changedQuantity"));
+                        result.set(true);
                     }
                 });
+        return result.get();
     }
 
     private Optional<CartItem> getExistingItem(Cart cart, Phone phone) {
