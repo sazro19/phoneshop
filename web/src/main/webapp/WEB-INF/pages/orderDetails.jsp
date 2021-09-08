@@ -5,7 +5,8 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <tags:master pageTitle="OrderOverview">
-  <h1>Thank you for your order</h1>
+  <h1>Order number: ${order.id}</h1>
+  <h3>Order status: ${order.status}</h3>
   <form action="${pageContext.request.contextPath}/productList">
     <button>
       Back to product list
@@ -22,9 +23,21 @@
   <div class="description">
       ${order.additionalInformation}
   </div>
-  <form action="${pageContext.request.contextPath}/productList">
+  <form action="${pageContext.request.contextPath}/admin/orders">
     <button>
-      Back to shopping
+      Back
     </button>
+  </form>
+  <form method="post">
+    <button>
+      Delivered
+    </button>
+    <input type="hidden" name="status" value="DELIVERED">
+  </form>
+  <form method="post">
+    <button>
+      Rejected
+    </button>
+    <input type="hidden" name="status" value="REJECTED">
   </form>
 </tags:master>
