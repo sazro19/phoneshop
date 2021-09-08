@@ -29,6 +29,11 @@
   </error-page>
 
   <error-page>
+    <location>/WEB-INF/pages/errors/orderNotFound.jsp</location>
+    <exception-type>com.es.core.exceptions.OrderNotFoundException</exception-type>
+  </error-page>
+
+  <error-page>
     <location>/WEB-INF/pages/errors/unknownError.jsp</location>
     <error-code>500</error-code>
   </error-page>

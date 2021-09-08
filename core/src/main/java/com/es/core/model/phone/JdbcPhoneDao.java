@@ -1,16 +1,18 @@
 package com.es.core.model.phone;
 
+import com.es.core.model.JdbcInsertClass;
 import com.es.core.model.sort.SortCriteria;
 import com.es.core.model.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,6 +28,9 @@ public class JdbcPhoneDao implements PhoneDao {
 
     @Autowired
     private ResultSetExtractor<List<Phone>> resultSetExtractor;
+
+    @Autowired
+    private JdbcInsertClass jdbcInsertClass;
 
     private static final String SELECT_PHONE_BY_ID_QUERY = "SELECT phones.id AS id, brand, model, price, " +
             "displaySizeInches, weightGr, lengthMm, widthMm, heightMm, announced, deviceType, " +
@@ -111,6 +116,8 @@ public class JdbcPhoneDao implements PhoneDao {
 
     private final static String DELETE_PHONE2COLOR_RECORDS_SQL_QUERY = "DELETE FROM phone2color WHERE phoneId = ?";
 
+    @Override
+    @Transactional(readOnly = true)
     public Optional<Phone> get(final Long key) {
         List<Phone> result = jdbcTemplate.query(SELECT_PHONE_BY_ID_QUERY, resultSetExtractor, key);
 
@@ -120,6 +127,8 @@ public class JdbcPhoneDao implements PhoneDao {
         return Optional.empty();
     }
 
+    @Override
+    @Transactional(rollbackFor = DataAccessException.class)
     public void save(final Phone phone) {
         if (phone.getId() == null) {
             insertNewPhone(phone);
@@ -127,12 +136,16 @@ public class JdbcPhoneDao implements PhoneDao {
         update(phone);
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public List<Phone> findAll(int offset, int limit) {
         List<Phone> result = jdbcTemplate.query(SELECT_ALL_WITH_OFFSET_AND_LIMIT, resultSetExtractor, offset, limit);
 
         return result;
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public List<Phone> findAll(ParamWrapper wrapper) {
         String resultQuery = String.format(SELECT_ALL_WITH_SEARCH_QUERY, getSearchPattern(wrapper.getQuery()),
                 wrapper.getSortCriteria().getValue(), wrapper.getSortOrder());
@@ -141,6 +154,8 @@ public class JdbcPhoneDao implements PhoneDao {
         return result;
     }
 
+    @Override
+    @Transactional(readOnly = true)
     public int getRecordsQuantity(String query, SortCriteria sortCriteria, SortOrder sortOrder) {
         String resultQuery = String.format(COUNT_ALL_VALID_PHONES_SQL_QUERY, getSearchPattern(query),
                 sortCriteria.getValue(), sortOrder);
@@ -163,15 +178,9 @@ public class JdbcPhoneDao implements PhoneDao {
     }
 
     private void insertNewPhone(Phone phone) {
-        Long newId = insertAndReturnGeneratedKey(new BeanPropertySqlParameterSource(phone)).longValue();
+        Long newId = jdbcInsertClass.insertAndReturnGeneratedKey(PHONES_TABLE_NAME,
+                new BeanPropertySqlParameterSource(phone), PhoneFieldConstants.PHONE_ID_FIELD).longValue();
         phone.setId(newId);
-    }
-
-    private Number insertAndReturnGeneratedKey(SqlParameterSource parameters) {
-        return new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName(PHONES_TABLE_NAME)
-                .usingGeneratedKeyColumns(PhoneFieldConstants.PHONE_ID_FIELD)
-                .executeAndReturnKey(parameters);
     }
 
     private void refreshColors(final Phone phone) {

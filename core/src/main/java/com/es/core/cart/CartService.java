@@ -17,4 +17,8 @@ public interface CartService {
     void update(Cart cart, Map<Long, Long> items);
 
     void remove(Cart cart, Long phoneId);
+
+    void recalculate(Cart cart);
+
+    boolean updateActualQuantity(CartItem cartItem);
 }
