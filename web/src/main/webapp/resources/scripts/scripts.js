@@ -21,7 +21,8 @@ function addPhoneToCart(phoneId) {
     });
 }
 
-function deletePhoneFromCart(phoneId) {
+function submitForm(formId) {
+    document.getElementById(formId).submit();
 }
 
 function getMiniCart() {
