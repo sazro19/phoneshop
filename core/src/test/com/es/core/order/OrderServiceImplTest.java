@@ -4,6 +4,7 @@ import com.es.core.cart.Cart;
 import com.es.core.cart.CartItem;
 import com.es.core.model.order.Order;
 import com.es.core.model.order.OrderDao;
+import com.es.core.model.order.OrderStatus;
 import com.es.core.model.phone.Phone;
 import com.es.core.model.phone.PhoneDao;
 import com.es.core.model.phone.stock.Stock;
@@ -17,7 +18,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.env.Environment;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
@@ -129,5 +133,40 @@ public class OrderServiceImplTest {
         assertEquals(4, stock1.getStock().intValue());
         assertEquals(2, stock2.getStock().intValue());
         assertFalse(order.getSecureId().isEmpty());
+    }
+
+    @Test
+    public void findAllOrdersTest() {
+        Order firstOrder =  new Order();
+        Order secondOrder = new Order();
+        Order thirdOrder = new Order();
+
+        List<Order> expected = Arrays.asList(firstOrder, secondOrder, thirdOrder);
+
+        when(orderDao.findAll()).thenReturn(expected);
+
+        assertEquals(expected, orderService.findAllOrders());
+    }
+
+    @Test
+    public void getOrderTest() {
+        Order order = new Order();
+        order.setId(1L);
+
+        Optional<Order> optionalOrder = Optional.of(order);
+
+        when(orderDao.get(order.getId())).thenReturn(optionalOrder);
+
+        assertEquals(order, optionalOrder.orElse(new Order()));
+    }
+
+    @Test
+    public void updateStatusTest() {
+        Order order = new Order();
+        order.setStatus(OrderStatus.NEW);
+
+        orderService.updateStatus(order, OrderStatus.DELIVERED);
+
+        assertEquals(OrderStatus.DELIVERED, order.getStatus());
     }
 }

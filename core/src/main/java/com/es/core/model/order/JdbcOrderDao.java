@@ -164,10 +164,12 @@ public class JdbcOrderDao implements OrderDao {
     public void save(Order order) {
         if (order.getId() == null) {
             insertOrder(order);
+            return;
+        } else if (!order.getStatus().equals(OrderStatus.NEW)) {
+            updateStatus(order);
+            return;
         }
-        if (!order.getStatus().equals(OrderStatus.NEW)) {
-            update(order);
-        }
+        throw new IllegalStateException();
     }
 
     @Override
@@ -177,7 +179,7 @@ public class JdbcOrderDao implements OrderDao {
         return result;
     }
 
-    private void update(final Order order) {
+    private void updateStatus(final Order order) {
         jdbcTemplate.update(UPDATE_ORDER_STATUS_SQL_QUERY, order.getStatus().toString(), order.getId());
     }
 

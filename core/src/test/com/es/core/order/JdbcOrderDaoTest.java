@@ -5,6 +5,7 @@ import com.es.core.model.JdbcInsertClass;
 import com.es.core.model.order.Order;
 import com.es.core.model.order.OrderDao;
 import com.es.core.model.order.OrderItem;
+import com.es.core.model.order.OrderStatus;
 import com.es.core.model.phone.Phone;
 import com.es.core.model.phone.PhoneDao;
 import org.junit.Before;
@@ -25,10 +26,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -65,6 +64,8 @@ public class JdbcOrderDaoTest {
         savedOrder.setDeliveryAddress("address");
         savedOrder.setContactPhoneNo("+375(77)7777777");
         savedOrder.setAdditionalInformation("info");
+        savedOrder.setStatus(OrderStatus.NEW);
+        savedOrder.setDateOfCreation(LocalDateTime.now());
 
         List<OrderItem> orderItems = new ArrayList<>();
         idList.forEach(id -> {
@@ -104,6 +105,11 @@ public class JdbcOrderDaoTest {
 
         assertEquals(savedOrder.getId(), order.getId());
         assertEquals(savedOrder.getSecureId(), order.getSecureId());
+
+        order = orderDao.get(savedOrder.getId()).orElse(new Order());
+
+        assertEquals(savedOrder.getId(), order.getId());
+        assertEquals(savedOrder.getSecureId(), order.getSecureId());
     }
 
     @Test
@@ -124,5 +130,23 @@ public class JdbcOrderDaoTest {
         assertEquals(savedOrder.getSecureId(), order.getSecureId());
     }
 
+    @Test
+    public void findAllTest() {
+        assertEquals(Collections.singletonList(savedOrder), orderDao.findAll());
 
+        Order order = new Order();
+        order.setFirstName("firstName");
+        order.setLastName("lastName");
+        order.setDeliveryAddress("address");
+        order.setContactPhoneNo("+375(77)7777777");
+        order.setAdditionalInformation("info");
+        order.setStatus(OrderStatus.NEW);
+        order.setDateOfCreation(LocalDateTime.now());
+        order.setSecureId(UUID.randomUUID().toString());
+        order.setOrderItems(savedOrder.getOrderItems());
+
+        orderDao.save(order);
+
+        assertEquals(Arrays.asList(savedOrder, order), orderDao.findAll());
+    }
 }

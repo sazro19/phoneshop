@@ -21,10 +21,6 @@ function addPhoneToCart(phoneId) {
     });
 }
 
-function submitForm(formId) {
-    document.getElementById(formId).submit();
-}
-
 function getMiniCart() {
     $(document).ready(function () {
         $.get('/phoneshop-web/miniCart', function (data) {
