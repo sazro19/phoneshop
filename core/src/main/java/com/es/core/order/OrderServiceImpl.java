@@ -1,11 +1,11 @@
 package com.es.core.order;
 
 import com.es.core.cart.Cart;
-import com.es.core.cart.CartItem;
 import com.es.core.exceptions.NotEnoughStockException;
 import com.es.core.model.order.Order;
 import com.es.core.model.order.OrderDao;
 import com.es.core.model.order.OrderItem;
+import com.es.core.model.order.OrderStatus;
 import com.es.core.model.phone.Phone;
 import com.es.core.model.phone.PhoneDao;
 import com.es.core.model.phone.stock.Stock;
@@ -18,8 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -45,6 +46,9 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItems(getOrderItemsFromCart(cart, order));
         setPriceInfo(cart, order);
 
+        order.setStatus(OrderStatus.NEW);
+        order.setCreationDate(LocalDateTime.now());
+
         return order;
     }
 
@@ -60,6 +64,25 @@ public class OrderServiceImpl implements OrderService {
         orderDao.save(order);
 
         updateStock(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Order> findAll() {
+        return orderDao.findAll();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Order> getOrder(Long id) {
+        return orderDao.get(id);
+    }
+
+    @Override
+    public void updateStatus(Order order, OrderStatus orderStatus) {
+        order.setStatus(orderStatus);
+
+        orderDao.updateStatus(order);
     }
 
     private List<OrderItem> getOrderItemsFromCart(Cart cart, Order order) {

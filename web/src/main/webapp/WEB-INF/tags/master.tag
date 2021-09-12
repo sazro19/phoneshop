@@ -1,6 +1,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@ tag trimDirectiveWhitespaces="true" %>
 <%@ attribute name="pageTitle" required="true" %>
 
@@ -61,7 +62,17 @@
         </a>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto"></ul>
-            <a class="navbar-brand logo" href="#">Login</a>
+            <sec:authorize access="not hasRole('ADMIN')">
+                <a class="navbar-brand logo" href="${pageContext.request.contextPath}/login">Login</a>
+            </sec:authorize>
+            <sec:authorize access="hasRole('ADMIN')">
+                <a class="navbar-brand logo" id="userName"
+                   href="${pageContext.request.contextPath}/admin/orders">
+                    <sec:authentication property="principal.username"/>
+                </a>
+                <a class="navbar-brand logo" href="${pageContext.request.contextPath}/logout">Logout</a>
+            </sec:authorize>
+        </div>
             <form class="form-inline my-2 my-lg-0" action="${pageContext.request.contextPath}/cart">
                 <button class="btn btn-outline-success my-2 my-sm-0" type="submit" id="miniCart">
                 </button>
