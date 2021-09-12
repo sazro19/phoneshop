@@ -47,7 +47,7 @@ public class OrderServiceImpl implements OrderService {
         setPriceInfo(cart, order);
 
         order.setStatus(OrderStatus.NEW);
-        order.setDateOfCreation(LocalDateTime.now());
+        order.setCreationDate(LocalDateTime.now());
 
         return order;
     }
@@ -68,10 +68,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Order> findAllOrders() {
-        List<Order> result = orderDao.findAll();
-
-        return result;
+    public List<Order> findAll() {
+        return orderDao.findAll();
     }
 
     @Override
@@ -84,7 +82,7 @@ public class OrderServiceImpl implements OrderService {
     public void updateStatus(Order order, OrderStatus orderStatus) {
         order.setStatus(orderStatus);
 
-        orderDao.save(order);
+        orderDao.updateStatus(order);
     }
 
     private List<OrderItem> getOrderItemsFromCart(Cart cart, Order order) {

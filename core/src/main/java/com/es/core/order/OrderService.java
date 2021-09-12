@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface OrderService {
     Order createOrder(Cart cart);
     void placeOrder(Order order);
-    List<Order> findAllOrders();
+    List<Order> findAll();
     Optional<Order> getOrder(Long id);
     void updateStatus(Order order, OrderStatus orderStatus);
 }

@@ -27,7 +27,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.UUID;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -65,7 +69,7 @@ public class JdbcOrderDaoTest {
         savedOrder.setContactPhoneNo("+375(77)7777777");
         savedOrder.setAdditionalInformation("info");
         savedOrder.setStatus(OrderStatus.NEW);
-        savedOrder.setDateOfCreation(LocalDateTime.now());
+        savedOrder.setCreationDate(LocalDateTime.now());
 
         List<OrderItem> orderItems = new ArrayList<>();
         idList.forEach(id -> {
@@ -141,7 +145,7 @@ public class JdbcOrderDaoTest {
         order.setContactPhoneNo("+375(77)7777777");
         order.setAdditionalInformation("info");
         order.setStatus(OrderStatus.NEW);
-        order.setDateOfCreation(LocalDateTime.now());
+        order.setCreationDate(LocalDateTime.now());
         order.setSecureId(UUID.randomUUID().toString());
         order.setOrderItems(savedOrder.getOrderItems());
 

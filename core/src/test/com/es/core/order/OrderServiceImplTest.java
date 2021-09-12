@@ -145,7 +145,7 @@ public class OrderServiceImplTest {
 
         when(orderDao.findAll()).thenReturn(expected);
 
-        assertEquals(expected, orderService.findAllOrders());
+        assertEquals(expected, orderService.findAll());
     }
 
     @Test

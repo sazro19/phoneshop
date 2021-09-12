@@ -8,4 +8,5 @@ public interface OrderDao {
     Optional<Order> get(Long id);
     void save(Order order);
     List<Order> findAll();
+    void updateStatus(Order order);
 }

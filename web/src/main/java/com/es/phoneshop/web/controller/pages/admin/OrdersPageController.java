@@ -20,9 +20,7 @@ public class OrdersPageController {
 
     @GetMapping
     public String orderList(Model model) {
-        List<Order> orderList = orderService.findAllOrders();
-
-        model.addAttribute("orderList", orderList);
+        model.addAttribute("orderList", orderService.findAll());
 
         return "orderList";
     }

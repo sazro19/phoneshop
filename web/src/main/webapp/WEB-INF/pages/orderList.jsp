@@ -38,7 +38,7 @@
           <td>${order.firstName} ${order.lastName}</td>
           <td>${order.contactPhoneNo}</td>
           <td>${order.deliveryAddress}</td>
-          <td>${order.dateOfCreation.toLocalDate()} ${order.dateOfCreation.hour}:${order.dateOfCreation.minute}</td>
+          <td>${order.creationDate.toLocalDate()} ${order.creationDate.hour}:${order.creationDate.minute}</td>
           <td>${order.totalPrice}</td>
           <td>${order.status}</td>
         </tr>

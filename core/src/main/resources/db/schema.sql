@@ -72,7 +72,7 @@ create table orders
     subtotal              DECIMAL(12, 2),
     deliveryPrice         DECIMAL(5, 2),
     totalPrice            DECIMAL(12, 2),
-    dateOfCreation        DATETIME,
+    creationDate        DATETIME,
     status                VARCHAR(50) NOT NULL,
     UNIQUE (secureId)
 );

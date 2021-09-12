@@ -2,6 +2,8 @@ package com.es.core.model.order;
 
 import com.es.core.model.JdbcInsertClass;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
@@ -13,6 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
+@PropertySource("classpath:/config/errors.properties")
 public class JdbcOrderDao implements OrderDao {
 
     @Autowired
@@ -24,9 +27,12 @@ public class JdbcOrderDao implements OrderDao {
     @Autowired
     private JdbcInsertClass jdbcInsertClass;
 
+    @Autowired
+    private Environment environment;
+
     private static final String SELECT_ONE_BY_SECURE_ID_SQL_QUERY = "SELECT ordersFound.id AS id, " +
             "secureId, firstName, lastName, deliveryAddress, contactPhoneNo, additionalInformation, " +
-            "subtotal, deliveryPrice, totalPrice, dateOfCreation, status, " +
+            "subtotal, deliveryPrice, totalPrice, creationDate, status, " +
             "orderItems.id AS orderItems_id," +
             "orderItems.quantity AS orderItems_quantity, " +
             "phones.id AS orderItems_phone_id, " +
@@ -65,7 +71,7 @@ public class JdbcOrderDao implements OrderDao {
 
     private static final String SELECT_ONE_BY_ID_SQL_QUERY = "SELECT ordersFound.id AS id, " +
             "secureId, firstName, lastName, deliveryAddress, contactPhoneNo, additionalInformation, " +
-            "subtotal, deliveryPrice, totalPrice, dateOfCreation, status, " +
+            "subtotal, deliveryPrice, totalPrice, creationDate, status, " +
             "orderItems.id AS orderItems_id," +
             "orderItems.quantity AS orderItems_quantity, " +
             "phones.id AS orderItems_phone_id, " +
@@ -104,7 +110,7 @@ public class JdbcOrderDao implements OrderDao {
 
     private static final String SELECT_ALL_SQL_QUERY = "SELECT ordersFound.id AS id, " +
             "secureId, firstName, lastName, deliveryAddress, contactPhoneNo, additionalInformation, " +
-            "subtotal, deliveryPrice, totalPrice, dateOfCreation, status, " +
+            "subtotal, deliveryPrice, totalPrice, creationDate, status, " +
             "orderItems.id AS orderItems_id," +
             "orderItems.quantity AS orderItems_quantity, " +
             "phones.id AS orderItems_phone_id, " +
@@ -164,22 +170,18 @@ public class JdbcOrderDao implements OrderDao {
     public void save(Order order) {
         if (order.getId() == null) {
             insertOrder(order);
-            return;
-        } else if (!order.getStatus().equals(OrderStatus.NEW)) {
-            updateStatus(order);
-            return;
+        } else {
+            throw new IllegalStateException(environment.getProperty("error.orderHasAlreadyCreated"));
         }
-        throw new IllegalStateException();
     }
 
     @Override
     public List<Order> findAll() {
-        List<Order> result = jdbcTemplate.query(SELECT_ALL_SQL_QUERY, orderExtractor);
-
-        return result;
+        return jdbcTemplate.query(SELECT_ALL_SQL_QUERY, orderExtractor);
     }
 
-    private void updateStatus(final Order order) {
+    @Override
+    public void updateStatus(final Order order) {
         jdbcTemplate.update(UPDATE_ORDER_STATUS_SQL_QUERY, order.getStatus().toString(), order.getId());
     }
 
