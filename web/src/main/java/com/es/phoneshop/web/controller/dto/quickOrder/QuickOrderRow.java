@@ -6,7 +6,7 @@ public class QuickOrderRow {
 
     private String phoneModel;
 
-    private String quantity;
+    private Long quantity;
 
     public Long getRowId() {
         return rowId;
@@ -24,11 +24,11 @@ public class QuickOrderRow {
         this.phoneModel = phoneModel;
     }
 
-    public String getQuantity() {
+    public Long getQuantity() {
         return quantity;
     }
 
-    public void setQuantity(String quantity) {
+    public void setQuantity(Long quantity) {
         this.quantity = quantity;
     }
 }

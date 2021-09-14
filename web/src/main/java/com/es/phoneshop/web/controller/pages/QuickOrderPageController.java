@@ -13,10 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
@@ -68,38 +65,47 @@ public class QuickOrderPageController {
 
         AtomicInteger i = new AtomicInteger(0);
         quickOrderDto.getRows().forEach(quickOrderRow -> {
-            if (!bindingResult.hasFieldErrors("rows[" + i.intValue() + "].phoneModel") &&
-                    !bindingResult.hasFieldErrors("rows[" + i.intValue() + "].quantity")) {
-                String phoneModel = quickOrderRow.getPhoneModel();
-                String quantity = quickOrderRow.getQuantity();
-
-                if (isEmptyString(phoneModel) && isEmptyString(quantity)) {
-                    i.getAndIncrement();
-                    return;
-                }
-
-                Optional<Phone> phoneOptional = phoneDao.get(phoneModel);
-
-                try {
-                    Phone phone = phoneOptional.orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND_MESSAGE));
-                    cartService.addPhone(cart, phone.getId(), Long.parseLong(quantity));
-                    addedProducts.add(phoneModel);
-                    quickOrderDto.getRows().set(i.intValue(), new QuickOrderRow());
-                } catch (ProductNotFoundException | NotEnoughStockException | IllegalArgumentException e) {
-                    if (e.getClass().equals(ProductNotFoundException.class)) {
-                        bindingResult.rejectValue("rows[" + i.intValue() + "].phoneModel", "notFound", e.getMessage());
-                    } else {
-                        bindingResult.rejectValue("rows[" + i.intValue() + "].quantity", "notEnoughStock", e.getMessage());
-                    }
-                }
-            }
-            i.getAndIncrement();
+            loopLogic(quickOrderDto, quickOrderRow, bindingResult, addedProducts, i, cart);
         });
 
         model.addAttribute(QUICK_ORDER_DTO_ATTRIBUTE, quickOrderDto);
         model.addAttribute(ADDED_PRODUCTS_ATTRIBUTE, addedProducts);
         model.addAttribute(ERRORS_ATTRIBUTE, bindingResult);
         return "quickOrder";
+    }
+
+    private void loopLogic(QuickOrderDto quickOrderDto,
+                           QuickOrderRow quickOrderRow,
+                           BindingResult bindingResult,
+                           List<String> addedProducts,
+                           AtomicInteger i,
+                           Cart cart) {
+        if (!bindingResult.hasFieldErrors("rows[" + i.intValue() + "].phoneModel") &&
+                !bindingResult.hasFieldErrors("rows[" + i.intValue() + "].quantity")) {
+            String phoneModel = quickOrderRow.getPhoneModel();
+            Long quantity = quickOrderRow.getQuantity();
+
+            if (isEmptyString(phoneModel) && quantity == null) {
+                i.getAndIncrement();
+                return;
+            }
+
+            Optional<Phone> phoneOptional = phoneDao.get(phoneModel);
+
+            try {
+                Phone phone = phoneOptional.orElseThrow(() -> new ProductNotFoundException(PRODUCT_NOT_FOUND_MESSAGE));
+                cartService.addPhone(cart, phone.getId(), quantity);
+                addedProducts.add(phoneModel);
+                quickOrderDto.getRows().set(i.intValue(), new QuickOrderRow());
+            } catch (ProductNotFoundException | NotEnoughStockException | IllegalArgumentException e) {
+                if (e.getClass().equals(ProductNotFoundException.class)) {
+                    bindingResult.rejectValue("rows[" + i.intValue() + "].phoneModel", "notFound", e.getMessage());
+                } else {
+                    bindingResult.rejectValue("rows[" + i.intValue() + "].quantity", "notEnoughStock", e.getMessage());
+                }
+            }
+        }
+        i.getAndIncrement();
     }
 
     private boolean isEmptyString(String string) {

@@ -23,32 +23,24 @@ public class QuickOrderValidator implements Validator {
         quickOrderDto.getRows().forEach(quickOrderRow -> {
             Long index = quickOrderRow.getRowId();
             String model = quickOrderRow.getPhoneModel();
-            String quantity = quickOrderRow.getQuantity();
+            Long quantity = quickOrderRow.getQuantity();
 
-            if (isEmptyString(model) && isEmptyString(quantity)) {
+            if (isEmptyString(model) && quantity == null) {
                 return;
             }
 
-            if (isOneFieldEmpty(model, quantity)) {
-                errors.rejectValue("rows[" + index + "].phoneModel", "emptyField", BOTH_FIELDS_ARE_REQUIRED);
-                return;
-            }
-
-            try {
-                Long.parseLong(quantity);
-            } catch (NumberFormatException e) {
-                errors.rejectValue("rows[" + index + "].quantity", "notNumber", NOT_A_NUMBER_MESSAGE);
+            if (!errors.hasFieldErrors("rows[" + index + "].quantity")) {
+                if (isOneFieldEmpty(model, quantity)) {
+                    errors.rejectValue("rows[" + index + "].phoneModel", "emptyField", BOTH_FIELDS_ARE_REQUIRED);
+                    return;
+                }
             }
         });
     }
 
-    private boolean isStringInvalid(String string) {
-        return string == null || string.trim().isEmpty();
-    }
-
-    private boolean isOneFieldEmpty(String model, String quantity) {
-        return (isEmptyString(model) && !isEmptyString(quantity)) ||
-                (!isEmptyString(model) && isEmptyString(quantity));
+    private boolean isOneFieldEmpty(String model, Long quantity) {
+        return (isEmptyString(model) && quantity != null) ||
+                (!isEmptyString(model) && quantity == null);
     }
 
     private boolean isEmptyString(String string) {
