@@ -46,6 +46,20 @@ public class JdbcPhoneDao implements PhoneDao {
             "LEFT JOIN colors ON colors.id = phone2color.colorId " +
             "LEFT JOIN stocks ON phones.id = stocks.phoneId";
 
+    private static final String SELECT_PHONE_BY_MODEL_QUERY = "SELECT phones.id AS id, brand, model, price, " +
+            "displaySizeInches, weightGr, lengthMm, widthMm, heightMm, announced, deviceType, " +
+            "os, displayResolution, pixelDensity, displayTechnology,backCameraMegapixels, " +
+            "frontCameraMegapixels, ramGb, internalStorageGb, batteryCapacityMah, " +
+            "talkTimeHours, standByTimeHours, bluetooth, positioning, imageUrl, description, " +
+            "colors.id AS colors_id, " +
+            "colors.code AS colors_code, " +
+            "stocks.stock AS stock " +
+            "FROM (SELECT " +
+            "* FROM phones WHERE phones.model = ?) AS phones " +
+            "LEFT JOIN phone2color ON phones.id = phone2color.phoneId " +
+            "LEFT JOIN colors ON colors.id = phone2color.colorId " +
+            "LEFT JOIN stocks ON phones.id = stocks.phoneId";
+
     private static final String SELECT_ALL_WITH_OFFSET_AND_LIMIT = "SELECT phonesWithColor.id AS id, brand, " +
             "model, price, displaySizeInches, weightGr, lengthMm, widthMm, heightMm, " +
             "announced, deviceType, os, displayResolution, pixelDensity, displayTechnology, " +
@@ -160,6 +174,19 @@ public class JdbcPhoneDao implements PhoneDao {
         String resultQuery = String.format(COUNT_ALL_VALID_PHONES_SQL_QUERY, getSearchPattern(query),
                 sortCriteria.getValue(), sortOrder);
         return jdbcTemplate.queryForObject(resultQuery, Integer.class);
+    }
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Phone> get(String model) {
+        List<Phone> result = jdbcTemplate.query(SELECT_PHONE_BY_MODEL_QUERY, resultSetExtractor, model);
+
+        if (result != null && !result.isEmpty()) {
+            return Optional.of(result.get(0));
+        }
+        return Optional.empty();
     }
 
     private String getSearchPattern(String query) {
